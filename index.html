@@ -1,1723 +1,682 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000510" />
-    <meta name="description" content="ないる 観測所 - Official Fan Site" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="ないる観測所" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <title>ないる - 観測所</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&display=swap');
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        background: #000510;
-        font-family: 'Kaisei Decol', serif;
-        color: #fff;
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-      canvas#bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
-      }
-      .app {
-        position: relative;
-        z-index: 2;
-        max-width: 480px;
-        margin: 0 auto;
-        min-height: 100vh;
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000510">
+<meta name="description" content="ないる 観測所 - Official Fan Site">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ないる観測所">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>ないる - 観測所</title>
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#000510;font-family:'Kaisei Decol',serif;color:#fff;min-height:100vh;overflow-x:hidden;}
+canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:2;max-width:480px;margin:0 auto;min-height:100vh;}
 
-      /* HEADER */
-      .hdr {
-        position: sticky;
-        top: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 18px;
-        background: rgba(0, 5, 16, 0.9);
-        backdrop-filter: blur(14px);
-        border-bottom: 1px solid rgba(55, 138, 221, 0.2);
-        z-index: 50;
-      }
-      .hdr-l {
-        display: flex;
-        flex-direction: column;
-      }
-      .hdr-name {
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 0.15em;
-      }
-      .hdr-sub {
-        font-size: 9px;
-        color: #378add;
-        letter-spacing: 0.35em;
-        margin-top: 2px;
-      }
-      .hdr-r {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .hbg {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        cursor: pointer;
-        padding: 6px;
-      }
-      .hbg span {
-        display: block;
-        width: 22px;
-        height: 1.5px;
-        background: #378add;
-        border-radius: 2px;
-      }
-      .login-chip {
-        background: rgba(55, 138, 221, 0.1);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 20px;
-        padding: 5px 14px;
-        cursor: pointer;
-        font-size: 10px;
-        color: #378add;
-        letter-spacing: 0.1em;
-        font-family: 'Kaisei Decol', serif;
-      }
-      .user-chip {
-        display: none;
-        align-items: center;
-        gap: 6px;
-        background: rgba(55, 138, 221, 0.1);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 20px;
-        padding: 4px 10px;
-        cursor: pointer;
-        font-size: 10px;
-      }
-      .u-avatar {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: #378add;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: 700;
-        flex-shrink: 0;
-      }
+/* HEADER */
+.hdr{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(0,5,16,0.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(55,138,221,0.2);z-index:50;}
+.hdr-l{display:flex;flex-direction:column;}
+.hdr-name{font-size:16px;font-weight:700;letter-spacing:0.15em;}
+.hdr-sub{font-size:9px;color:#378add;letter-spacing:0.35em;margin-top:2px;}
+.hdr-r{display:flex;align-items:center;gap:12px;}
+.hbg{display:flex;flex-direction:column;gap:5px;cursor:pointer;padding:6px;}
+.hbg span{display:block;width:22px;height:1.5px;background:#378add;border-radius:2px;}
+.login-chip{background:rgba(55,138,221,0.1);border:1px solid rgba(55,138,221,0.3);border-radius:20px;padding:5px 14px;cursor:pointer;font-size:10px;color:#378add;letter-spacing:0.1em;font-family:'Kaisei Decol',serif;}
+.user-chip{display:none;align-items:center;gap:6px;background:rgba(55,138,221,0.1);border:1px solid rgba(55,138,221,0.3);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:10px;}
+.u-avatar{width:20px;height:20px;border-radius:50%;background:#378add;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
 
-      /* USER MENU */
-      .umenu {
-        position: fixed;
-        top: 58px;
-        right: calc(50% - 240px + 14px);
-        background: rgba(5, 12, 35, 0.98);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 12px;
-        padding: 8px;
-        z-index: 200;
-        display: none;
-        min-width: 165px;
-      }
-      @media (max-width: 480px) {
-        .umenu {
-          right: 14px;
-        }
-      }
-      .umenu.on {
-        display: block;
-      }
-      .umenu-user {
-        padding: 10px 14px 8px;
-        border-bottom: 1px solid rgba(55, 138, 221, 0.15);
-        margin-bottom: 4px;
-      }
-      .umenu-name {
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .umenu-role {
-        font-size: 9px;
-        color: #378add;
-        letter-spacing: 0.1em;
-        margin-top: 2px;
-      }
-      .umenu-item {
-        padding: 10px 14px;
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.7);
-        cursor: pointer;
-        border-radius: 8px;
-        letter-spacing: 0.1em;
-        transition: 0.2s;
-      }
-      .umenu-item:hover {
-        background: rgba(55, 138, 221, 0.1);
-        color: #fff;
-      }
-      .umenu-item.danger {
-        color: #e24b4a;
-      }
+/* USER MENU */
+.umenu{position:fixed;top:58px;right:calc(50% - 240px + 14px);background:rgba(5,12,35,0.98);border:1px solid rgba(55,138,221,0.3);border-radius:12px;padding:8px;z-index:200;display:none;min-width:165px;}
+@media(max-width:480px){.umenu{right:14px;}}
+.umenu.on{display:block;}
+.umenu-user{padding:10px 14px 8px;border-bottom:1px solid rgba(55,138,221,0.15);margin-bottom:4px;}
+.umenu-name{font-size:12px;font-weight:700;}
+.umenu-role{font-size:9px;color:#378add;letter-spacing:0.1em;margin-top:2px;}
+.umenu-item{padding:10px 14px;font-size:12px;color:rgba(255,255,255,0.7);cursor:pointer;border-radius:8px;letter-spacing:0.1em;transition:.2s;}
+.umenu-item:hover{background:rgba(55,138,221,0.1);color:#fff;}
+.umenu-item.danger{color:#e24b4a;}
 
-      /* SIDE MENU */
-      .side-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 98;
-        display: none;
-      }
-      .side-overlay.on {
-        display: block;
-      }
-      .side {
-        position: fixed;
-        top: 0;
-        left: -270px;
-        width: 255px;
-        height: 100%;
-        background: rgba(0, 5, 20, 0.98);
-        border-right: 1px solid rgba(55, 138, 221, 0.3);
-        z-index: 99;
-        transition: left 0.3s ease;
-        padding-top: 60px;
-        backdrop-filter: blur(20px);
-      }
-      .side.on {
-        left: 0;
-      }
-      .side-close {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        cursor: pointer;
-        color: #378add;
-        font-size: 20px;
-        font-weight: 300;
-      }
-      .mitem {
-        display: block;
-        padding: 15px 22px;
-        color: rgba(255, 255, 255, 0.65);
-        font-size: 13px;
-        letter-spacing: 0.2em;
-        cursor: pointer;
-        border-bottom: 1px solid rgba(55, 138, 221, 0.08);
-        border-left: 2px solid transparent;
-        transition: 0.2s;
-      }
-      .mitem:hover,
-      .mitem.act {
-        color: #fff;
-        background: rgba(55, 138, 221, 0.1);
-        border-left-color: #378add;
-      }
-      .mitem.hidden {
-        display: none;
-      }
+/* SIDE MENU */
+.side-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:98;display:none;}
+.side-overlay.on{display:block;}
+.side{position:fixed;top:0;left:-270px;width:255px;height:100%;background:rgba(0,5,20,0.98);border-right:1px solid rgba(55,138,221,0.3);z-index:99;transition:left .3s ease;padding-top:60px;backdrop-filter:blur(20px);}
+.side.on{left:0;}
+.side-close{position:absolute;top:16px;right:16px;cursor:pointer;color:#378add;font-size:20px;font-weight:300;}
+.mitem{display:block;padding:15px 22px;color:rgba(255,255,255,0.65);font-size:13px;letter-spacing:0.2em;cursor:pointer;border-bottom:1px solid rgba(55,138,221,0.08);border-left:2px solid transparent;transition:.2s;}
+.mitem:hover,.mitem.act{color:#fff;background:rgba(55,138,221,0.1);border-left-color:#378add;}
+.mitem.hidden{display:none;}
 
-      /* PAGES */
-      .pg {
-        display: none;
-        padding: 20px 18px 80px;
-      }
-      .pg.on {
-        display: block;
-      }
-      .sec-title {
-        font-size: 10px;
-        letter-spacing: 0.3em;
-        color: #378add;
-        margin-bottom: 14px;
-        text-align: center;
-      }
+/* PAGES */
+.pg{display:none;padding:20px 18px 80px;}
+.pg.on{display:block;}
+.sec-title{font-size:10px;letter-spacing:0.3em;color:#378add;margin-bottom:14px;text-align:center;}
 
-      /* CARD */
-      .card {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 14px;
-      }
-      .card h3 {
-        font-size: 10px;
-        color: #378add;
-        letter-spacing: 0.3em;
-        margin-bottom: 12px;
-        border-bottom: 1px solid rgba(55, 138, 221, 0.2);
-        padding-bottom: 8px;
-      }
+/* CARD */
+.card{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:14px;padding:16px;margin-bottom:14px;}
+.card h3{font-size:10px;color:#378add;letter-spacing:0.3em;margin-bottom:12px;border-bottom:1px solid rgba(55,138,221,0.2);padding-bottom:8px;}
 
-      /* HOME */
-      .hero {
-        text-align: center;
-        padding: 28px 0 20px;
-      }
-      .avatar-ring {
-        width: 92px;
-        height: 92px;
-        border-radius: 50%;
-        border: 2px solid #378add;
-        margin: 0 auto 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(55, 138, 221, 0.08);
-        box-shadow: 0 0 30px rgba(55, 138, 221, 0.35);
-      }
-      .avatar-ring span {
-        font-size: 32px;
-      }
-      .vname {
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-      }
-      .vsub {
-        font-size: 10px;
-        color: #378add;
-        letter-spacing: 0.3em;
-        margin-top: 4px;
-      }
-      .live-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        background: rgba(24, 95, 165, 0.25);
-        border: 1px solid #185fa5;
-        border-radius: 20px;
-        padding: 5px 16px;
-        font-size: 11px;
-        color: #fff;
-        margin-top: 14px;
-        letter-spacing: 0.1em;
-      }
-      .live-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #378add;
-        animation: blink 1.4s infinite;
-      }
-      @keyframes blink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.2;
-        }
-      }
-      .prow {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        font-size: 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      }
-      .prow span:first-child {
-        color: #378add;
-        font-size: 11px;
-      }
-      .sns-row {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 14px;
-      }
-      .sns-btn {
-        flex: 1;
-        padding: 11px;
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 12px;
-        color: #fff;
-        font-size: 11px;
-        text-align: center;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-        letter-spacing: 0.1em;
-        transition: 0.2s;
-        text-decoration: none;
-        display: block;
-      }
-      .sns-btn:hover {
-        background: rgba(55, 138, 221, 0.15);
-        border-color: #378add;
-      }
-      .tag-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-      .tag-item {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 10px;
-        padding: 11px;
-        text-align: center;
-        cursor: pointer;
-        transition: 0.2s;
-      }
-      .tag-item:hover {
-        background: rgba(55, 138, 221, 0.12);
-        border-color: #378add;
-      }
-      .tag-sub {
-        font-size: 9px;
-        color: #378add;
-        letter-spacing: 0.1em;
-        margin-bottom: 3px;
-      }
-      .tag-name {
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .copied {
-        font-size: 9px;
-        color: #378add;
-        margin-top: 3px;
-        height: 12px;
-      }
-      .link-btn {
-        display: block;
-        text-align: center;
-        padding: 13px;
-        background: rgba(10, 20, 50, 0.65);
-        border: 1.5px solid rgba(55, 138, 221, 0.35);
-        border-radius: 12px;
-        color: #fff;
-        font-size: 12px;
-        letter-spacing: 0.15em;
-        text-decoration: none;
-        transition: 0.2s;
-        margin-bottom: 10px;
-        font-family: 'Kaisei Decol', serif;
-      }
-      .link-btn:hover {
-        background: rgba(55, 138, 221, 0.12);
-        box-shadow: 0 0 16px rgba(55, 138, 221, 0.25);
-      }
+/* HOME */
+.hero{text-align:center;padding:28px 0 20px;}
+.avatar-ring{width:92px;height:92px;border-radius:50%;border:2px solid #378add;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;background:rgba(55,138,221,0.08);box-shadow:0 0 30px rgba(55,138,221,0.35);}
+.avatar-ring span{font-size:32px;}
+.vname{font-size:24px;font-weight:700;letter-spacing:0.2em;}
+.vsub{font-size:10px;color:#378add;letter-spacing:0.3em;margin-top:4px;}
+.live-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(24,95,165,0.25);border:1px solid #185fa5;border-radius:20px;padding:5px 16px;font-size:11px;color:#fff;margin-top:14px;letter-spacing:0.1em;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#378add;animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.prow{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.prow span:first-child{color:#378add;font-size:11px;}
+.sns-row{display:flex;gap:10px;margin-bottom:14px;}
+.sns-btn{flex:1;padding:11px;background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.3);border-radius:12px;color:#fff;font-size:11px;text-align:center;cursor:pointer;font-family:'Kaisei Decol',serif;letter-spacing:0.1em;transition:.2s;text-decoration:none;display:block;}
+.sns-btn:hover{background:rgba(55,138,221,0.15);border-color:#378add;}
+.tag-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tag-item{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:10px;padding:11px;text-align:center;cursor:pointer;transition:.2s;}
+.tag-item:hover{background:rgba(55,138,221,0.12);border-color:#378add;}
+.tag-sub{font-size:9px;color:#378add;letter-spacing:0.1em;margin-bottom:3px;}
+.tag-name{font-size:12px;font-weight:700;}
+.copied{font-size:9px;color:#378add;margin-top:3px;height:12px;}
+.link-btn{display:block;text-align:center;padding:13px;background:rgba(10,20,50,0.65);border:1.5px solid rgba(55,138,221,0.35);border-radius:12px;color:#fff;font-size:12px;letter-spacing:0.15em;text-decoration:none;transition:.2s;margin-bottom:10px;font-family:'Kaisei Decol',serif;}
+.link-btn:hover{background:rgba(55,138,221,0.12);box-shadow:0 0 16px rgba(55,138,221,0.25);}
 
-      /* NEWS */
-      .notif-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 12px;
-        padding: 13px 16px;
-        margin-bottom: 10px;
-      }
-      .notif-toggle span {
-        font-size: 12px;
-      }
-      .tsw {
-        width: 40px;
-        height: 22px;
-        background: rgba(55, 138, 221, 0.3);
-        border-radius: 11px;
-        position: relative;
-        cursor: pointer;
-        border: 1px solid rgba(55, 138, 221, 0.4);
-        transition: 0.3s;
-      }
-      .tsw.on {
-        background: #378add;
-      }
-      .tsw::after {
-        content: '';
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 16px;
-        height: 16px;
-        background: #fff;
-        border-radius: 50%;
-        transition: 0.3s;
-      }
-      .tsw.on::after {
-        left: 20px;
-      }
-      .news-card {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.15);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 10px;
-      }
-      .nbadge {
-        display: inline-block;
-        background: rgba(55, 138, 221, 0.2);
-        border: 1px solid #378add;
-        border-radius: 10px;
-        padding: 2px 9px;
-        font-size: 9px;
-        color: #378add;
-        margin-bottom: 8px;
-        letter-spacing: 0.1em;
-      }
-      .ntitle {
-        font-size: 13px;
-        font-weight: 700;
-        margin-bottom: 5px;
-      }
-      .nbody {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.6);
-        line-height: 1.7;
-      }
-      .ntime {
-        font-size: 10px;
-        color: #185fa5;
-        margin-top: 8px;
-      }
-      .react-row {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-        flex-wrap: wrap;
-      }
-      .rbtn {
-        background: rgba(55, 138, 221, 0.08);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 20px;
-        padding: 4px 11px;
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        transition: 0.2s;
-        font-family: 'Kaisei Decol', serif;
-      }
-      .rbtn:hover,
-      .rbtn.on {
-        background: rgba(55, 138, 221, 0.22);
-        border-color: #378add;
-        color: #fff;
-      }
+/* NEWS */
+.notif-toggle{display:flex;align-items:center;justify-content:space-between;background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:12px;padding:13px 16px;margin-bottom:10px;}
+.notif-toggle span{font-size:12px;}
+.tsw{width:40px;height:22px;background:rgba(55,138,221,0.3);border-radius:11px;position:relative;cursor:pointer;border:1px solid rgba(55,138,221,0.4);transition:.3s;}
+.tsw.on{background:#378add;}
+.tsw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.3s;}
+.tsw.on::after{left:20px;}
+.news-card{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.15);border-radius:12px;padding:14px;margin-bottom:10px;}
+.nbadge{display:inline-block;background:rgba(55,138,221,0.2);border:1px solid #378add;border-radius:10px;padding:2px 9px;font-size:9px;color:#378add;margin-bottom:8px;letter-spacing:0.1em;}
+.ntitle{font-size:13px;font-weight:700;margin-bottom:5px;}
+.nbody{font-size:11px;color:rgba(255,255,255,0.6);line-height:1.7;}
+.ntime{font-size:10px;color:#185fa5;margin-top:8px;}
+.react-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.rbtn{background:rgba(55,138,221,0.08);border:1px solid rgba(55,138,221,0.2);border-radius:20px;padding:4px 11px;font-size:11px;color:rgba(255,255,255,0.6);cursor:pointer;transition:.2s;font-family:'Kaisei Decol',serif;}
+.rbtn:hover,.rbtn.on{background:rgba(55,138,221,0.22);border-color:#378add;color:#fff;}
 
-      /* SCHEDULE */
-      .cd-box {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 14px;
-        text-align: center;
-      }
-      .cd-box h3 {
-        font-size: 9px;
-        color: #378add;
-        letter-spacing: 0.3em;
-        margin-bottom: 10px;
-      }
-      .cd-nums {
-        font-size: 26px;
-        font-weight: 700;
-        font-family: monospace;
-        letter-spacing: 0.05em;
-        text-shadow: 0 0 20px rgba(55, 138, 221, 0.6);
-      }
-      .cd-lbl {
-        font-size: 9px;
-        color: rgba(255, 255, 255, 0.35);
-        margin-top: 6px;
-        letter-spacing: 0.1em;
-      }
-      .sched-item {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.15);
-        border-radius: 12px;
-        padding: 13px 14px;
-        margin-bottom: 8px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-      .sd {
-        text-align: center;
-        min-width: 40px;
-      }
-      .sd-day {
-        font-size: 9px;
-        color: #378add;
-        letter-spacing: 0.1em;
-      }
-      .sd-num {
-        font-size: 21px;
-        font-weight: 700;
-        line-height: 1.1;
-      }
-      .si {
-        flex: 1;
-      }
-      .si-t {
-        font-size: 12px;
-        font-weight: 700;
-        margin-bottom: 3px;
-      }
-      .si-time {
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.45);
-      }
-      .stag {
-        font-size: 9px;
-        background: rgba(55, 138, 221, 0.15);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 8px;
-        padding: 2px 8px;
-        color: #378add;
-        white-space: nowrap;
-      }
+/* SCHEDULE */
+.cd-box{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:14px;padding:20px;margin-bottom:14px;text-align:center;}
+.cd-box h3{font-size:9px;color:#378add;letter-spacing:0.3em;margin-bottom:10px;}
+.cd-nums{font-size:26px;font-weight:700;font-family:monospace;letter-spacing:0.05em;text-shadow:0 0 20px rgba(55,138,221,0.6);}
+.cd-lbl{font-size:9px;color:rgba(255,255,255,0.35);margin-top:6px;letter-spacing:0.1em;}
+.sched-item{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.15);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;}
+.sd{text-align:center;min-width:40px;}
+.sd-day{font-size:9px;color:#378add;letter-spacing:0.1em;}
+.sd-num{font-size:21px;font-weight:700;line-height:1.1;}
+.si{flex:1;}
+.si-t{font-size:12px;font-weight:700;margin-bottom:3px;}
+.si-time{font-size:10px;color:rgba(255,255,255,0.45);}
+.stag{font-size:9px;background:rgba(55,138,221,0.15);border:1px solid rgba(55,138,221,0.3);border-radius:8px;padding:2px 8px;color:#378add;white-space:nowrap;}
 
-      /* GOODS */
-      .goods-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 14px;
-      }
-      .goods-card {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 12px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: 0.2s;
-        text-decoration: none;
-        display: block;
-        color: #fff;
-      }
-      .goods-card:hover {
-        border-color: #378add;
-        transform: translateY(-2px);
-        box-shadow: 0 0 16px rgba(55, 138, 221, 0.2);
-      }
-      .goods-img {
-        height: 120px;
-        background: rgba(20, 40, 90, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
-      }
-      .goods-info {
-        padding: 11px;
-      }
-      .goods-name {
-        font-size: 11px;
-        font-weight: 700;
-        margin-bottom: 4px;
-      }
-      .goods-price {
-        font-size: 12px;
-        color: #378add;
-        font-family: monospace;
-      }
+/* GOODS */
+.goods-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.goods-card{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:12px;overflow:hidden;cursor:pointer;transition:.2s;text-decoration:none;display:block;color:#fff;}
+.goods-card:hover{border-color:#378add;transform:translateY(-2px);box-shadow:0 0 16px rgba(55,138,221,0.2);}
+.goods-img{height:120px;background:rgba(20,40,90,0.5);display:flex;align-items:center;justify-content:center;font-size:32px;}
+.goods-info{padding:11px;}
+.goods-name{font-size:11px;font-weight:700;margin-bottom:4px;}
+.goods-price{font-size:12px;color:#378add;font-family:monospace;}
 
-      /* BOARD */
-      .comment-card {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.15);
-        border-radius: 12px;
-        padding: 13px 14px;
-        margin-bottom: 8px;
-      }
-      .c-head {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 7px;
-      }
-      .c-av {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #185fa5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-        flex-shrink: 0;
-      }
-      .c-name {
-        font-size: 11px;
-        font-weight: 700;
-      }
-      .c-time {
-        font-size: 9px;
-        color: rgba(255, 255, 255, 0.3);
-        margin-left: auto;
-      }
-      .c-body {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.75);
-        line-height: 1.6;
-      }
-      .comment-form {
-        background: rgba(10, 20, 50, 0.65);
-        border: 1px solid rgba(55, 138, 221, 0.2);
-        border-radius: 14px;
-        padding: 14px;
-        margin-bottom: 14px;
-      }
-      .comment-form textarea {
-        width: 100%;
-        background: rgba(0, 5, 20, 0.8);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 8px;
-        padding: 10px;
-        color: #fff;
-        font-size: 12px;
-        font-family: 'Kaisei Decol', serif;
-        resize: none;
-        outline: none;
-        margin-bottom: 8px;
-      }
-      .comment-form textarea:focus {
-        border-color: #378add;
-      }
-      .comment-form textarea::placeholder {
-        color: rgba(255, 255, 255, 0.3);
-      }
-      .post-btn {
-        width: 100%;
-        padding: 11px;
-        background: rgba(55, 138, 221, 0.15);
-        border: 1px solid #378add;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 12px;
-        letter-spacing: 0.1em;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-        transition: 0.2s;
-      }
-      .post-btn:hover {
-        background: rgba(55, 138, 221, 0.3);
-      }
-      .login-req {
-        text-align: center;
-        padding: 22px;
-        background: rgba(10, 20, 50, 0.4);
-        border: 1px dashed rgba(55, 138, 221, 0.3);
-        border-radius: 12px;
-        margin-bottom: 14px;
-      }
-      .login-req p {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.5);
-        margin-bottom: 12px;
-        line-height: 1.7;
-      }
-      .lreq-btn {
-        padding: 10px 24px;
-        background: rgba(55, 138, 221, 0.15);
-        border: 1px solid #378add;
-        border-radius: 20px;
-        color: #fff;
-        font-size: 11px;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-        letter-spacing: 0.1em;
-      }
+/* BOARD */
+.comment-card{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.15);border-radius:12px;padding:13px 14px;margin-bottom:8px;}
+.c-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.c-av{width:28px;height:28px;border-radius:50%;background:#185fa5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.c-name{font-size:11px;font-weight:700;}
+.c-time{font-size:9px;color:rgba(255,255,255,0.3);margin-left:auto;}
+.c-body{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;}
+.comment-form{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:14px;padding:14px;margin-bottom:14px;}
+.comment-form textarea{width:100%;background:rgba(0,5,20,0.8);border:1px solid rgba(55,138,221,0.3);border-radius:8px;padding:10px;color:#fff;font-size:12px;font-family:'Kaisei Decol',serif;resize:none;outline:none;margin-bottom:8px;}
+.comment-form textarea:focus{border-color:#378add;}
+.comment-form textarea::placeholder{color:rgba(255,255,255,0.3);}
+.post-btn{width:100%;padding:11px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;letter-spacing:0.1em;cursor:pointer;font-family:'Kaisei Decol',serif;transition:.2s;}
+.post-btn:hover{background:rgba(55,138,221,0.3);}
+.login-req{text-align:center;padding:22px;background:rgba(10,20,50,0.4);border:1px dashed rgba(55,138,221,0.3);border-radius:12px;margin-bottom:14px;}
+.login-req p{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;line-height:1.7;}
+.lreq-btn{padding:10px 24px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:20px;color:#fff;font-size:11px;cursor:pointer;font-family:'Kaisei Decol',serif;letter-spacing:0.1em;}
 
-      /* ADMIN */
-      .admin-input {
-        width: 100%;
-        background: rgba(0, 5, 20, 0.8);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 8px;
-        padding: 10px 12px;
-        color: #fff;
-        font-size: 12px;
-        font-family: 'Kaisei Decol', serif;
-        margin-bottom: 8px;
-        outline: none;
-      }
-      .admin-input:focus {
-        border-color: #378add;
-      }
-      .admin-input::placeholder {
-        color: rgba(255, 255, 255, 0.3);
-      }
-      .admin-btn {
-        width: 100%;
-        padding: 11px;
-        background: rgba(55, 138, 221, 0.15);
-        border: 1px solid #378add;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 12px;
-        letter-spacing: 0.15em;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-        transition: 0.2s;
-        margin-bottom: 8px;
-      }
-      .admin-btn:hover {
-        background: rgba(55, 138, 221, 0.3);
-      }
-      .admin-no {
-        text-align: center;
-        padding: 40px 20px;
-      }
-      .admin-no p {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.4);
-        line-height: 1.9;
-      }
+/* ADMIN */
+.admin-input{width:100%;background:rgba(0,5,20,0.8);border:1px solid rgba(55,138,221,0.3);border-radius:8px;padding:10px 12px;color:#fff;font-size:12px;font-family:'Kaisei Decol',serif;margin-bottom:8px;outline:none;}
+.admin-input:focus{border-color:#378add;}
+.admin-input::placeholder{color:rgba(255,255,255,0.3);}
+.admin-btn{width:100%;padding:11px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;letter-spacing:0.15em;cursor:pointer;font-family:'Kaisei Decol',serif;transition:.2s;margin-bottom:8px;}
+.admin-btn:hover{background:rgba(55,138,221,0.3);}
+.admin-no{text-align:center;padding:40px 20px;}
+.admin-no p{font-size:12px;color:rgba(255,255,255,0.4);line-height:1.9;}
 
-      /* LOGIN MODAL */
-      .modal-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 3, 12, 0.93);
-        z-index: 300;
-        display: none;
-        align-items: center;
-        justify-content: center;
-      }
-      .modal-bg.on {
-        display: flex;
-      }
-      .modal {
-        background: rgba(5, 12, 35, 0.99);
-        border: 1px solid rgba(55, 138, 221, 0.4);
-        border-radius: 20px;
-        padding: 28px 24px;
-        width: 88%;
-        max-width: 320px;
-      }
-      .modal-title {
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-        text-align: center;
-        margin-bottom: 5px;
-      }
-      .modal-sub {
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.35);
-        text-align: center;
-        letter-spacing: 0.1em;
-        margin-bottom: 22px;
-      }
-      .modal-input {
-        width: 100%;
-        background: rgba(0, 5, 20, 0.8);
-        border: 1px solid rgba(55, 138, 221, 0.3);
-        border-radius: 8px;
-        padding: 10px 12px;
-        color: #fff;
-        font-size: 12px;
-        font-family: 'Kaisei Decol', serif;
-        margin-bottom: 10px;
-        outline: none;
-      }
-      .modal-input:focus {
-        border-color: #378add;
-      }
-      .modal-input::placeholder {
-        color: rgba(255, 255, 255, 0.3);
-      }
-      .x-btn {
-        width: 100%;
-        padding: 12px;
-        background: rgba(0, 0, 0, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-        color: #fff;
-        font-size: 12px;
-        letter-spacing: 0.1em;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 10px;
-        transition: 0.2s;
-      }
-      .x-btn:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .x-btn svg {
-        width: 15px;
-        height: 15px;
-        fill: #fff;
-        flex-shrink: 0;
-      }
-      .modal-btn {
-        width: 100%;
-        padding: 12px;
-        background: rgba(55, 138, 221, 0.15);
-        border: 1px solid #378add;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 12px;
-        letter-spacing: 0.15em;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-        transition: 0.2s;
-        margin-bottom: 8px;
-      }
-      .modal-btn:hover {
-        background: rgba(55, 138, 221, 0.3);
-      }
-      .modal-cancel {
-        width: 100%;
-        padding: 8px;
-        background: none;
-        border: none;
-        color: rgba(255, 255, 255, 0.3);
-        font-size: 11px;
-        cursor: pointer;
-        font-family: 'Kaisei Decol', serif;
-      }
-      .modal-err {
-        font-size: 10px;
-        color: #e24b4a;
-        text-align: center;
-        margin-bottom: 8px;
-        min-height: 14px;
-      }
-      .divider {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 10px 0 14px;
-      }
-      .divider span {
-        flex: 1;
-        height: 1px;
-        background: rgba(55, 138, 221, 0.2);
-      }
-      .divider p {
-        font-size: 9px;
-        color: rgba(255, 255, 255, 0.3);
-        letter-spacing: 0.1em;
-      }
+/* LOGIN MODAL */
+.modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,3,12,0.93);z-index:300;display:none;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:rgba(5,12,35,0.99);border:1px solid rgba(55,138,221,0.4);border-radius:20px;padding:28px 24px;width:88%;max-width:320px;}
+.modal-title{font-size:14px;font-weight:700;letter-spacing:0.2em;text-align:center;margin-bottom:5px;}
+.modal-sub{font-size:10px;color:rgba(255,255,255,0.35);text-align:center;letter-spacing:0.1em;margin-bottom:22px;}
+.modal-input{width:100%;background:rgba(0,5,20,0.8);border:1px solid rgba(55,138,221,0.3);border-radius:8px;padding:10px 12px;color:#fff;font-size:12px;font-family:'Kaisei Decol',serif;margin-bottom:10px;outline:none;}
+.modal-input:focus{border-color:#378add;}
+.modal-input::placeholder{color:rgba(255,255,255,0.3);}
+.x-btn{width:100%;padding:12px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;font-size:12px;letter-spacing:0.1em;cursor:pointer;font-family:'Kaisei Decol',serif;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:.2s;}
+.x-btn:hover{background:rgba(255,255,255,0.08);}
+.x-btn svg{width:15px;height:15px;fill:#fff;flex-shrink:0;}
+.modal-btn{width:100%;padding:12px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;letter-spacing:0.15em;cursor:pointer;font-family:'Kaisei Decol',serif;transition:.2s;margin-bottom:8px;}
+.modal-btn:hover{background:rgba(55,138,221,0.3);}
+.modal-cancel{width:100%;padding:8px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:11px;cursor:pointer;font-family:'Kaisei Decol',serif;}
+.modal-err{font-size:10px;color:#e24b4a;text-align:center;margin-bottom:8px;min-height:14px;}
+.divider{display:flex;align-items:center;gap:10px;margin:10px 0 14px;}
+.divider span{flex:1;height:1px;background:rgba(55,138,221,0.2);}
+.divider p{font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;}
 
-      /* INSTALL BANNER */
-      .install-banner {
-        display: none;
-        position: fixed;
-        bottom: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(5, 12, 35, 0.98);
-        border: 1px solid rgba(55, 138, 221, 0.4);
-        border-radius: 14px;
-        padding: 12px 18px;
-        z-index: 400;
-        align-items: center;
-        gap: 12px;
-        max-width: 340px;
-        width: 90%;
-      }
-      .install-banner.on {
-        display: flex;
-      }
-      .ib-text {
-        flex: 1;
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.8);
-        line-height: 1.5;
-      }
-      .ib-btn {
-        background: rgba(55, 138, 221, 0.2);
-        border: 1px solid #378add;
-        border-radius: 10px;
-        padding: 8px 14px;
-        color: #fff;
-        font-size: 11px;
-        cursor: pointer;
-        white-space: nowrap;
-        font-family: 'Kaisei Decol', serif;
-      }
-      .ib-close {
-        color: rgba(255, 255, 255, 0.3);
-        cursor: pointer;
-        font-size: 16px;
-        flex-shrink: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="bg"></canvas>
+/* INSTALL BANNER */
+.install-banner{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(5,12,35,0.98);border:1px solid rgba(55,138,221,0.4);border-radius:14px;padding:12px 18px;z-index:400;align-items:center;gap:12px;max-width:340px;width:90%;}
+.install-banner.on{display:flex;}
+.ib-text{flex:1;font-size:11px;color:rgba(255,255,255,0.8);line-height:1.5;}
+.ib-btn{background:rgba(55,138,221,0.2);border:1px solid #378add;border-radius:10px;padding:8px 14px;color:#fff;font-size:11px;cursor:pointer;white-space:nowrap;font-family:'Kaisei Decol',serif;}
+.ib-close{color:rgba(255,255,255,0.3);cursor:pointer;font-size:16px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
 
-    <div class="app">
-      <div class="hdr">
-        <div class="hdr-l">
-          <div class="hdr-name">ないる</div>
-          <div class="hdr-sub">OBSERVATION STATION</div>
-        </div>
-        <div class="hdr-r">
-          <div id="login-chip" class="login-chip" onclick="openLogin()">
-            ログイン
-          </div>
-          <div id="user-chip" class="user-chip" onclick="toggleUMenu()">
-            <div class="u-avatar" id="u-av">？</div>
-            <span id="u-nm">観測者</span>
-          </div>
-          <div class="hbg" onclick="toggleSide()">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
+<div class="app">
+  <div class="hdr">
+    <div class="hdr-l">
+      <div class="hdr-name">ないる</div>
+      <div class="hdr-sub">OBSERVATION STATION</div>
+    </div>
+    <div class="hdr-r">
+      <div id="login-chip" class="login-chip" onclick="openLogin()">ログイン</div>
+      <div id="user-chip" class="user-chip" onclick="toggleUMenu()">
+        <div class="u-avatar" id="u-av">？</div>
+        <span id="u-nm">観測者</span>
       </div>
+      <div class="hbg" onclick="toggleSide()"><span></span><span></span><span></span></div>
+    </div>
+  </div>
 
-      <div class="umenu" id="umenu">
-        <div class="umenu-user">
-          <div class="umenu-name" id="um-name"></div>
-          <div class="umenu-role" id="um-role"></div>
-        </div>
-        <div class="umenu-item" onclick="closeUMenu()">
-          マイページ（準備中）
-        </div>
-        <div class="umenu-item danger" onclick="doLogout()">ログアウト</div>
-      </div>
+  <div class="umenu" id="umenu">
+    <div class="umenu-user">
+      <div class="umenu-name" id="um-name"></div>
+      <div class="umenu-role" id="um-role"></div>
+    </div>
+    <div class="umenu-item" onclick="closeUMenu()">マイページ（準備中）</div>
+    <div class="umenu-item danger" onclick="doLogout()">ログアウト</div>
+  </div>
 
-      <div class="side-overlay" id="sov" onclick="closeSide()"></div>
-      <div class="side" id="side">
-        <div class="side-close" onclick="closeSide()">✕</div>
-        <div class="mitem act" data-pg="home" onclick="goPage('home')">
-          ホーム
-        </div>
-        <div class="mitem" data-pg="news" onclick="goPage('news')">
-          おしらせ
-        </div>
-        <div class="mitem" data-pg="schedule" onclick="goPage('schedule')">
-          スケジュール
-        </div>
-        <div class="mitem" data-pg="goods" onclick="goPage('goods')">
-          グッズ
-        </div>
-        <div class="mitem" data-pg="board" onclick="goPage('board')">
-          掲示板
-        </div>
-        <div
-          class="mitem hidden"
-          id="menu-admin"
-          data-pg="admin"
-          onclick="goPage('admin')"
-        >
-          管理
-        </div>
-      </div>
+  <div class="side-overlay" id="sov" onclick="closeSide()"></div>
+  <div class="side" id="side">
+    <div class="side-close" onclick="closeSide()">✕</div>
+    <div class="mitem act" data-pg="home" onclick="goPage('home')">ホーム</div>
+    <div class="mitem" data-pg="news" onclick="goPage('news')">おしらせ</div>
+    <div class="mitem" data-pg="schedule" onclick="goPage('schedule')">スケジュール</div>
+    <div class="mitem" data-pg="goods" onclick="goPage('goods')">グッズ</div>
+    <div class="mitem" data-pg="board" onclick="goPage('board')">掲示板</div>
+    <div class="mitem hidden" id="menu-admin" data-pg="admin" onclick="goPage('admin')">管理</div>
+  </div>
 
-      <!-- LOGIN MODAL -->
-      <div class="modal-bg" id="login-modal">
-        <div class="modal">
-          <div class="modal-title">観測所にログイン</div>
-          <div class="modal-sub">OBSERVATION STATION</div>
-          <button class="x-btn" onclick="xLogin()">
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-              />
-            </svg>
-            X アカウントでログイン
-          </button>
-          <div class="divider">
-            <span></span>
-            <p>または ニックネームで</p>
-            <span></span>
-          </div>
-          <div class="modal-err" id="m-err"></div>
-          <input
-            class="modal-input"
-            id="m-name"
-            placeholder="観測者名（ニックネーム）"
-          />
-          <input
-            class="modal-input"
-            id="m-pw"
-            type="password"
-            placeholder="パスワード（管理者のみ入力）"
-          />
-          <button class="modal-btn" onclick="doLogin()">
-            ログイン / 新規登録
-          </button>
-          <button class="modal-cancel" onclick="closeLogin()">
-            キャンセル
-          </button>
-        </div>
-      </div>
+  <!-- LOGIN MODAL -->
+  <div class="modal-bg" id="login-modal">
+    <div class="modal">
+      <div class="modal-title">観測所にログイン</div>
+      <div class="modal-sub">OBSERVATION STATION</div>
+      <button class="x-btn" onclick="xLogin()">
+        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        X アカウントでログイン
+      </button>
+      <div class="divider"><span></span><p>または ニックネームで</p><span></span></div>
+      <div class="modal-err" id="m-err"></div>
+      <input class="modal-input" id="m-name" placeholder="観測者名（ニックネーム）">
+      <input class="modal-input" id="m-pw" type="password" placeholder="パスワード（管理者のみ入力）">
+      <button class="modal-btn" onclick="doLogin()">ログイン / 新規登録</button>
+      <button class="modal-cancel" onclick="closeLogin()">キャンセル</button>
+    </div>
+  </div>
 
-      <!-- HOME -->
-      <div class="pg on" id="pg-home">
-        <div class="hero">
-          <div class="avatar-ring"><span>🌌</span></div>
-          <div class="vname">ないる</div>
-          <div class="vsub">OBSERVATION STATION</div>
-          <div class="live-badge">
-            <div class="live-dot"></div>
-            <span>次回配信: 4/19 18:00</span>
-          </div>
-        </div>
-        <div class="card">
-          <h3>PROFILE</h3>
-          <div class="prow"><span>Name</span><span>ないる</span></div>
-          <div class="prow"><span>Age</span><span>15</span></div>
-          <div class="prow"><span>Birthday</span><span>4/16</span></div>
-          <div class="prow">
-            <span>Hobby</span><span>映像・デザイン制作</span>
-          </div>
-          <div class="prow"><span>Fan Name</span><span>観測者</span></div>
-          <div
-            style="
-              margin-top: 12px;
-              font-size: 11px;
-              color: rgba(255, 255, 255, 0.6);
-              line-height: 1.8;
-            "
-          >
-            みんなの光になりたいな！<br />15歳のクリエイター系Vtuber！
-          </div>
-        </div>
-        <div class="sns-row">
-          <a
-            class="sns-btn"
-            href="https://www.youtube.com/@Nailu-ch"
-            target="_blank"
-            >YouTube</a
-          >
-          <a
-            class="sns-btn"
-            href="https://twitcasting.tv/g:102965572127691748561"
-            target="_blank"
-            >ツイキャス</a
-          >
-          <a
-            class="sns-btn"
-            href="https://twitter.com/Nailu_x_x_"
-            target="_blank"
-            >X</a
-          >
-        </div>
-        <div class="card">
-          <h3>TAGS — クリックでコピー</h3>
-          <div class="tag-grid">
-            <div class="tag-item" onclick="cpTag(this,'#ないる宛て')">
-              <div class="tag-sub">MESSAGE</div>
-              <div class="tag-name">#ないる宛て</div>
-              <div class="copied"></div>
-            </div>
-            <div class="tag-item" onclick="cpTag(this,'#ないるのアトリエ')">
-              <div class="tag-sub">FAN ART</div>
-              <div class="tag-name">#ないるのアトリエ</div>
-              <div class="copied"></div>
-            </div>
-            <div class="tag-item" onclick="cpTag(this,'#ないる観測無線')">
-              <div class="tag-sub">STREAM</div>
-              <div class="tag-name">#ないる観測無線</div>
-              <div class="copied"></div>
-            </div>
-            <div class="tag-item" onclick="cpTag(this,'#ないる観測レポ')">
-              <div class="tag-sub">THOUGHTS</div>
-              <div class="tag-name">#ないる観測レポ</div>
-              <div class="copied"></div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <h3>LINKS</h3>
-          <a class="link-btn" href="https://nailu-x.booth.pm/" target="_blank"
-            >公式ショップ (BOOTH)</a
-          >
-          <a
-            class="link-btn"
-            href="https://nailu-creator.fanbox.cc/"
-            target="_blank"
-            >FANBOX</a
-          >
-          <a
-            class="link-btn"
-            href="https://marshmallow-qa.com/kgvcahhxd1ugjj0"
-            target="_blank"
-            >🌌 メッセージを送る</a
-          >
-        </div>
-      </div>
-
-      <!-- NEWS -->
-      <div class="pg" id="pg-news">
-        <div class="sec-title">おしらせ</div>
-        <div class="notif-toggle">
-          <span>配信開始通知</span>
-          <div class="tsw on" onclick="this.classList.toggle('on')"></div>
-        </div>
-        <div class="notif-toggle">
-          <span>日常ひとこと通知</span>
-          <div class="tsw on" onclick="this.classList.toggle('on')"></div>
-        </div>
-        <div class="notif-toggle">
-          <span>重要なお知らせ</span>
-          <div class="tsw on" onclick="this.classList.toggle('on')"></div>
-        </div>
-        <div style="margin-top: 18px" id="news-list">
-          <div class="news-card">
-            <div class="nbadge">IMPORTANT</div>
-            <div class="ntitle">🌌 拡散希望！！✨</div>
-            <div class="nbody">
-              たくさん拡散してぼくを広めてー！よろしくね🌌✨
-            </div>
-            <div class="ntime">2時間前</div>
-            <div class="react-row">
-              <button class="rbtn" onclick="react(this)">✦ 応援 12</button>
-              <button class="rbtn" onclick="react(this)">🌌 拡散 5</button>
-            </div>
-          </div>
-          <div class="news-card">
-            <div class="nbadge">INFO</div>
-            <div class="ntitle">初配信まであと少し！</div>
-            <div class="nbody">
-              4/19 18:00 から初配信するよ！みんな来てね〜！
-            </div>
-            <div class="ntime">1日前</div>
-            <div class="react-row">
-              <button class="rbtn" onclick="react(this)">✦ 楽しみ 24</button>
-            </div>
-          </div>
-          <div class="news-card">
-            <div class="nbadge">DAILY</div>
-            <div class="ntitle">今日のひとこと</div>
-            <div class="nbody">デザイン作業が楽しすぎて夜更かししちゃった☆</div>
-            <div class="ntime">3日前</div>
-            <div class="react-row">
-              <button class="rbtn" onclick="react(this)">✦ わかる 8</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SCHEDULE -->
-      <div class="pg" id="pg-schedule">
-        <div class="sec-title">スケジュール</div>
-        <div class="cd-box">
-          <h3>COUNTDOWN — 初配信まで</h3>
-          <div class="cd-nums" id="cd">00d 00h 00m 00s</div>
-          <div class="cd-lbl">2026.04.19 18:00 START</div>
-        </div>
-        <div class="sec-title">WEEKLY</div>
-        <div id="sched-list">
-          <div class="sched-item">
-            <div class="sd">
-              <div class="sd-day">SUN</div>
-              <div class="sd-num">19</div>
-            </div>
-            <div class="si">
-              <div class="si-t">初配信✨ はじめましてないるです</div>
-              <div class="si-time">18:00 〜 20:00</div>
-            </div>
-            <div class="stag">配信</div>
-          </div>
-          <div class="sched-item">
-            <div class="sd">
-              <div class="sd-day">SAT</div>
-              <div class="sd-num">25</div>
-            </div>
-            <div class="si">
-              <div class="si-t">ゲーム配信 ファンタジーRPG</div>
-              <div class="si-time">21:00 〜 23:00</div>
-            </div>
-            <div class="stag">ゲーム</div>
-          </div>
-          <div class="sched-item">
-            <div class="sd">
-              <div class="sd-day">SUN</div>
-              <div class="sd-num">26</div>
-            </div>
-            <div class="si">
-              <div class="si-t">観測者と雑談 ✦ お悩み相談室</div>
-              <div class="si-time">20:00 〜 22:00</div>
-            </div>
-            <div class="stag">雑談</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- GOODS -->
-      <div class="pg" id="pg-goods">
-        <div class="sec-title">グッズ</div>
-        <div class="goods-grid" id="goods-grid">
-          <a class="goods-card" href="https://nailu-x.booth.pm/" target="_blank"
-            ><div class="goods-img">🎂</div>
-            <div class="goods-info">
-              <div class="goods-name">生誕セット</div>
-              <div class="goods-price">¥2,500</div>
-            </div></a
-          >
-          <a class="goods-card" href="https://nailu-x.booth.pm/" target="_blank"
-            ><div class="goods-img">✨</div>
-            <div class="goods-info">
-              <div class="goods-name">Vtuberセット</div>
-              <div class="goods-price">¥3,000</div>
-            </div></a
-          >
-        </div>
-        <a class="link-btn" href="https://nailu-x.booth.pm/" target="_blank"
-          >BOOTHで全てのグッズを見る</a
-        >
-      </div>
-
-      <!-- BOARD -->
-      <div class="pg" id="pg-board">
-        <div class="sec-title">観測者掲示板</div>
-        <div id="b-login-req" class="login-req">
-          <p>掲示板に投稿するには<br />ログインが必要だよ！</p>
-          <button class="lreq-btn" onclick="openLogin()">
-            ログインして投稿する
-          </button>
-        </div>
-        <div class="comment-form" id="b-form" style="display: none">
-          <textarea
-            id="c-input"
-            rows="3"
-            placeholder="観測所からメッセージを送ろう..."
-          ></textarea>
-          <button class="post-btn" onclick="postComment()">投稿する</button>
-        </div>
-        <div id="comment-list">
-          <div class="comment-card">
-            <div class="c-head">
-              <div class="c-av" style="background: #185fa5">星</div>
-              <div class="c-name">星空観測者</div>
-              <div class="c-time">1時間前</div>
-            </div>
-            <div class="c-body">初配信楽しみすぎる！！絶対見に行きます🌌</div>
-          </div>
-          <div class="comment-card">
-            <div class="c-head">
-              <div class="c-av" style="background: #0c447c">月</div>
-              <div class="c-name">月光ウォッチャー</div>
-              <div class="c-time">3時間前</div>
-            </div>
-            <div class="c-body">
-              デザインめちゃくちゃ好きです✨ファンになりました！
-            </div>
-          </div>
-          <div class="comment-card">
-            <div class="c-head">
-              <div class="c-av" style="background: #042c53">宇</div>
-              <div class="c-name">宇宙漂流民</div>
-              <div class="c-time">5時間前</div>
-            </div>
-            <div class="c-body">グッズも可愛い〜！生誕セット買います！</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ADMIN -->
-      <div class="pg" id="pg-admin">
-        <div class="sec-title">管理画面</div>
-        <div id="admin-no" class="admin-no">
-          <p>
-            管理画面は<br />ないるのみアクセスできます<br /><br />管理者アカウントでログインしてください
-          </p>
-          <button
-            class="modal-btn"
-            style="
-              margin-top: 16px;
-              max-width: 200px;
-              margin-left: auto;
-              margin-right: auto;
-              display: block;
-            "
-            onclick="openLogin()"
-          >
-            ログイン
-          </button>
-        </div>
-        <div id="admin-panel" style="display: none">
-          <div class="card">
-            <h3>おしらせを投稿</h3>
-            <select class="admin-input" id="a-ntype">
-              <option>INFO</option>
-              <option>IMPORTANT</option>
-              <option>DAILY</option>
-            </select>
-            <input class="admin-input" id="a-ntitle" placeholder="タイトル" />
-            <textarea
-              class="admin-input"
-              id="a-nbody"
-              placeholder="本文"
-              rows="3"
-              style="resize: none"
-            ></textarea>
-            <button class="admin-btn" onclick="postNews()">投稿する</button>
-          </div>
-          <div class="card">
-            <h3>スケジュールを追加</h3>
-            <input
-              class="admin-input"
-              id="a-sday"
-              placeholder="曜日 (例: SAT)"
-            />
-            <input
-              class="admin-input"
-              id="a-sdate"
-              placeholder="日付 (例: 26)"
-            />
-            <input class="admin-input" id="a-stitle" placeholder="タイトル" />
-            <input
-              class="admin-input"
-              id="a-stime"
-              placeholder="時間 (例: 21:00 〜 23:00)"
-            />
-            <input
-              class="admin-input"
-              id="a-stag"
-              placeholder="タグ (例: ゲーム)"
-            />
-            <button class="admin-btn" onclick="addSched()">追加する</button>
-          </div>
-          <div class="card">
-            <h3>グッズを追加</h3>
-            <input class="admin-input" id="a-gname" placeholder="グッズ名" />
-            <input
-              class="admin-input"
-              id="a-gprice"
-              placeholder="価格 (例: ¥1,000)"
-            />
-            <input class="admin-input" id="a-gurl" placeholder="BOOTHのURL" />
-            <button class="admin-btn" onclick="addGoods()">追加する</button>
-          </div>
-          <button
-            class="admin-btn"
-            style="border-color: rgba(255, 255, 255, 0.2)"
-            onclick="doLogout()"
-          >
-            ログアウト
-          </button>
-        </div>
-      </div>
-
-      <!-- INSTALL BANNER -->
-      <div class="install-banner" id="install-banner">
-        <div class="ib-text">ホーム画面に追加してアプリとして使えるよ！</div>
-        <button class="ib-btn" id="ib-btn">追加する</button>
-        <span
-          class="ib-close"
-          onclick="document.getElementById('install-banner').classList.remove('on')"
-          >✕</span
-        >
+  <!-- HOME -->
+  <div class="pg on" id="pg-home">
+    <div class="hero">
+      <div class="avatar-ring"><span>🌌</span></div>
+      <div class="vname">ないる</div>
+      <div class="vsub">OBSERVATION STATION</div>
+      <div class="live-badge"><div class="live-dot"></div><span>次回配信: 4/19 18:00</span></div>
+    </div>
+    <div class="card">
+      <h3>PROFILE</h3>
+      <div class="prow"><span>Name</span><span>ないる</span></div>
+      <div class="prow"><span>Age</span><span>15</span></div>
+      <div class="prow"><span>Birthday</span><span>4/16</span></div>
+      <div class="prow"><span>Hobby</span><span>映像・デザイン制作</span></div>
+      <div class="prow"><span>Fan Name</span><span>観測者</span></div>
+      <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.6);line-height:1.8;">みんなの光になりたいな！<br>15歳のクリエイター系Vtuber！</div>
+    </div>
+    <div class="sns-row">
+      <a class="sns-btn" href="https://www.youtube.com/@Nailu-ch" target="_blank">YouTube</a>
+      <a class="sns-btn" href="https://twitcasting.tv/g:102965572127691748561" target="_blank">ツイキャス</a>
+      <a class="sns-btn" href="https://twitter.com/Nailu_x_x_" target="_blank">X</a>
+    </div>
+    <div class="card">
+      <h3>TAGS — クリックでコピー</h3>
+      <div class="tag-grid">
+        <div class="tag-item" onclick="cpTag(this,'#ないる宛て')"><div class="tag-sub">MESSAGE</div><div class="tag-name">#ないる宛て</div><div class="copied"></div></div>
+        <div class="tag-item" onclick="cpTag(this,'#ないるのアトリエ')"><div class="tag-sub">FAN ART</div><div class="tag-name">#ないるのアトリエ</div><div class="copied"></div></div>
+        <div class="tag-item" onclick="cpTag(this,'#ないる観測無線')"><div class="tag-sub">STREAM</div><div class="tag-name">#ないる観測無線</div><div class="copied"></div></div>
+        <div class="tag-item" onclick="cpTag(this,'#ないる観測レポ')"><div class="tag-sub">THOUGHTS</div><div class="tag-name">#ないる観測レポ</div><div class="copied"></div></div>
       </div>
     </div>
+    <div class="card">
+      <h3>LINKS</h3>
+      <a class="link-btn" href="https://nailu-x.booth.pm/" target="_blank">公式ショップ (BOOTH)</a>
+      <a class="link-btn" href="https://nailu-creator.fanbox.cc/" target="_blank">FANBOX</a>
+      <a class="link-btn" href="https://marshmallow-qa.com/kgvcahhxd1ugjj0" target="_blank">🌌 メッセージを送る</a>
+    </div>
+  </div>
 
-    <script>
-      const ADMIN_PW = 'nairu2026';
-      let me = null;
+  <!-- NEWS -->
+  <div class="pg" id="pg-news">
+    <div class="sec-title">おしらせ</div>
+    <div class="notif-toggle"><span>配信開始通知</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="notif-toggle"><span>日常ひとこと通知</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="notif-toggle"><span>重要なお知らせ</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
+    <div style="margin-top:18px;" id="news-list">
+      <div class="news-card">
+        <div class="nbadge">IMPORTANT</div>
+        <div class="ntitle">🌌 拡散希望！！✨</div>
+        <div class="nbody">たくさん拡散してぼくを広めてー！よろしくね🌌✨</div>
+        <div class="ntime">2時間前</div>
+        <div class="react-row">
+          <button class="rbtn" onclick="react(this)">✦ 応援 12</button>
+          <button class="rbtn" onclick="react(this)">🌌 拡散 5</button>
+        </div>
+      </div>
+      <div class="news-card">
+        <div class="nbadge">INFO</div>
+        <div class="ntitle">初配信まであと少し！</div>
+        <div class="nbody">4/19 18:00 から初配信するよ！みんな来てね〜！</div>
+        <div class="ntime">1日前</div>
+        <div class="react-row"><button class="rbtn" onclick="react(this)">✦ 楽しみ 24</button></div>
+      </div>
+      <div class="news-card">
+        <div class="nbadge">DAILY</div>
+        <div class="ntitle">今日のひとこと</div>
+        <div class="nbody">デザイン作業が楽しすぎて夜更かししちゃった☆</div>
+        <div class="ntime">3日前</div>
+        <div class="react-row"><button class="rbtn" onclick="react(this)">✦ わかる 8</button></div>
+      </div>
+    </div>
+  </div>
 
-      // ---- STARS ----
-      const cv = document.getElementById('bg'),
-        cx = cv.getContext('2d');
-      let stars = [];
-      function rsz() {
-        cv.width = window.innerWidth;
-        cv.height = window.innerHeight;
-        stars = [];
-        for (let i = 0; i < 200; i++)
-          stars.push({
-            x: Math.random() * cv.width,
-            y: Math.random() * cv.height,
-            r: Math.random() * 1.5 + 0.3,
-            o: Math.random(),
-            s: Math.random() * 0.008 + 0.003,
-          });
-      }
-      let ss = { x: 0, y: 0, vx: 0, vy: 0, a: false };
-      function nss() {
-        ss.x = Math.random() * cv.width * 0.5;
-        ss.y = Math.random() * cv.height * 0.3;
-        ss.vx = 13 + Math.random() * 5;
-        ss.vy = 5 + Math.random() * 4;
-        ss.a = true;
-        setTimeout(nss, 4000 + Math.random() * 4000);
-      }
-      nss();
-      function draw() {
-        cx.clearRect(0, 0, cv.width, cv.height);
-        stars.forEach((s) => {
-          s.o += s.s;
-          if (s.o > 1 || s.o < 0.1) s.s *= -1;
-          cx.beginPath();
-          cx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-          cx.fillStyle = `rgba(180,210,255,${Math.abs(s.o)})`;
-          cx.fill();
-        });
-        if (ss.a) {
-          cx.beginPath();
-          cx.strokeStyle = 'rgba(255,255,255,.75)';
-          cx.lineWidth = 1.5;
-          cx.lineCap = 'round';
-          cx.moveTo(ss.x, ss.y);
-          cx.lineTo(ss.x - ss.vx * 3, ss.y - ss.vy * 3);
-          cx.stroke();
-          ss.x += ss.vx;
-          ss.y += ss.vy;
-          if (ss.x > cv.width || ss.y > cv.height) ss.a = false;
-        }
-        requestAnimationFrame(draw);
-      }
-      rsz();
-      draw();
-      window.addEventListener('resize', rsz);
+  <!-- SCHEDULE -->
+  <div class="pg" id="pg-schedule">
+    <div class="sec-title">スケジュール</div>
+    <div class="cd-box">
+      <h3>COUNTDOWN — 初配信まで</h3>
+      <div class="cd-nums" id="cd">00d 00h 00m 00s</div>
+      <div class="cd-lbl">2026.04.19 18:00 START</div>
+    </div>
+    <div class="sec-title">WEEKLY</div>
+    <div id="sched-list">
+      <div class="sched-item"><div class="sd"><div class="sd-day">SUN</div><div class="sd-num">19</div></div><div class="si"><div class="si-t">初配信✨ はじめましてないるです</div><div class="si-time">18:00 〜 20:00</div></div><div class="stag">配信</div></div>
+      <div class="sched-item"><div class="sd"><div class="sd-day">SAT</div><div class="sd-num">25</div></div><div class="si"><div class="si-t">ゲーム配信 ファンタジーRPG</div><div class="si-time">21:00 〜 23:00</div></div><div class="stag">ゲーム</div></div>
+      <div class="sched-item"><div class="sd"><div class="sd-day">SUN</div><div class="sd-num">26</div></div><div class="si"><div class="si-t">観測者と雑談 ✦ お悩み相談室</div><div class="si-time">20:00 〜 22:00</div></div><div class="stag">雑談</div></div>
+    </div>
+  </div>
 
-      // ---- NAV ----
-      function toggleSide() {
-        document.getElementById('side').classList.toggle('on');
-        document.getElementById('sov').classList.toggle('on');
-      }
-      function closeSide() {
-        document.getElementById('side').classList.remove('on');
-        document.getElementById('sov').classList.remove('on');
-      }
-      function goPage(id) {
-        document
-          .querySelectorAll('.pg')
-          .forEach((p) => p.classList.remove('on'));
-        document.getElementById('pg-' + id).classList.add('on');
-        document
-          .querySelectorAll('.mitem')
-          .forEach((m) => m.classList.toggle('act', m.dataset.pg === id));
-        closeSide();
-        closeUMenu();
-      }
+  <!-- GOODS -->
+  <div class="pg" id="pg-goods">
+    <div class="sec-title">グッズ</div>
+    <div class="goods-grid" id="goods-grid">
+      <a class="goods-card" href="https://nailu-x.booth.pm/" target="_blank"><div class="goods-img">🎂</div><div class="goods-info"><div class="goods-name">生誕セット</div><div class="goods-price">¥2,500</div></div></a>
+      <a class="goods-card" href="https://nailu-x.booth.pm/" target="_blank"><div class="goods-img">✨</div><div class="goods-info"><div class="goods-name">Vtuberセット</div><div class="goods-price">¥3,000</div></div></a>
+    </div>
+    <a class="link-btn" href="https://nailu-x.booth.pm/" target="_blank">BOOTHで全てのグッズを見る</a>
+  </div>
 
-      // ---- USER MENU ----
-      function toggleUMenu() {
-        document.getElementById('umenu').classList.toggle('on');
-      }
-      function closeUMenu() {
-        document.getElementById('umenu').classList.remove('on');
-      }
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('#umenu') && !e.target.closest('#user-chip'))
-          closeUMenu();
-      });
+  <!-- BOARD -->
+  <div class="pg" id="pg-board">
+    <div class="sec-title">観測者掲示板</div>
+    <div id="b-login-req" class="login-req">
+      <p>掲示板に投稿するには<br>ログインが必要だよ！</p>
+      <button class="lreq-btn" onclick="openLogin()">ログインして投稿する</button>
+    </div>
+    <div class="comment-form" id="b-form" style="display:none;">
+      <textarea id="c-input" rows="3" placeholder="観測所からメッセージを送ろう..."></textarea>
+      <button class="post-btn" onclick="postComment()">投稿する</button>
+    </div>
+    <div id="comment-list">
+      <div class="comment-card"><div class="c-head"><div class="c-av" style="background:#185fa5;">星</div><div class="c-name">星空観測者</div><div class="c-time">1時間前</div></div><div class="c-body">初配信楽しみすぎる！！絶対見に行きます🌌</div></div>
+      <div class="comment-card"><div class="c-head"><div class="c-av" style="background:#0c447c;">月</div><div class="c-name">月光ウォッチャー</div><div class="c-time">3時間前</div></div><div class="c-body">デザインめちゃくちゃ好きです✨ファンになりました！</div></div>
+      <div class="comment-card"><div class="c-head"><div class="c-av" style="background:#042c53;">宇</div><div class="c-name">宇宙漂流民</div><div class="c-time">5時間前</div></div><div class="c-body">グッズも可愛い〜！生誕セット買います！</div></div>
+    </div>
+  </div>
 
-      // ---- LOGIN ----
-      function openLogin() {
-        document.getElementById('login-modal').classList.add('on');
-        closeUMenu();
-      }
-      function closeLogin() {
-        document.getElementById('login-modal').classList.remove('on');
-        document.getElementById('m-err').textContent = '';
-      }
+  <!-- ADMIN -->
+  <div class="pg" id="pg-admin">
+    <div class="sec-title">管理画面</div>
+    <div id="admin-no" class="admin-no">
+      <p>管理画面は<br>ないるのみアクセスできます<br><br>管理者アカウントでログインしてください</p>
+      <button class="modal-btn" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto;display:block;" onclick="openLogin()">ログイン</button>
+    </div>
+    <div id="admin-panel" style="display:none;">
+      <div class="card">
+        <h3>おしらせを投稿</h3>
+        <select class="admin-input" id="a-ntype"><option>INFO</option><option>IMPORTANT</option><option>DAILY</option></select>
+        <input class="admin-input" id="a-ntitle" placeholder="タイトル">
+        <textarea class="admin-input" id="a-nbody" placeholder="本文" rows="3" style="resize:none;"></textarea>
+        <button class="admin-btn" onclick="postNews()">投稿する</button>
+      </div>
+      <div class="card">
+        <h3>スケジュールを追加</h3>
+        <input class="admin-input" id="a-sday" placeholder="曜日 (例: SAT)">
+        <input class="admin-input" id="a-sdate" placeholder="日付 (例: 26)">
+        <input class="admin-input" id="a-stitle" placeholder="タイトル">
+        <input class="admin-input" id="a-stime" placeholder="時間 (例: 21:00 〜 23:00)">
+        <input class="admin-input" id="a-stag" placeholder="タグ (例: ゲーム)">
+        <button class="admin-btn" onclick="addSched()">追加する</button>
+      </div>
+      <div class="card">
+        <h3>グッズを追加</h3>
+        <input class="admin-input" id="a-gname" placeholder="グッズ名">
+        <input class="admin-input" id="a-gprice" placeholder="価格 (例: ¥1,000)">
+        <input class="admin-input" id="a-gurl" placeholder="BOOTHのURL">
+        <button class="admin-btn" onclick="addGoods()">追加する</button>
+      </div>
+      <button class="admin-btn" style="border-color:rgba(255,255,255,0.2);" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
 
-      function xLogin() {
-        const nm = 'X観測者_' + Math.floor(Math.random() * 9000 + 1000);
-        setUser({ name: nm, role: 'observer', init: nm[0] });
-        closeLogin();
-      }
+  <!-- INSTALL BANNER -->
+  <div class="install-banner" id="install-banner">
+    <div class="ib-text">ホーム画面に追加してアプリとして使えるよ！</div>
+    <button class="ib-btn" id="ib-btn">追加する</button>
+    <span class="ib-close" onclick="document.getElementById('install-banner').classList.remove('on')">✕</span>
+  </div>
+</div>
 
-      function doLogin() {
-        const nm = document.getElementById('m-name').value.trim();
-        const pw = document.getElementById('m-pw').value;
-        if (!nm) {
-          document.getElementById('m-err').textContent = '観測者名を入力してね';
-          return;
-        }
-        if (pw && pw !== ADMIN_PW) {
-          document.getElementById('m-err').textContent =
-            '管理者パスワードが違います';
-          return;
-        }
-        const role = pw === ADMIN_PW ? 'admin' : 'observer';
-        setUser({ name: nm, role, init: nm[0] });
-        closeLogin();
-      }
+<script>
+const ADMIN_PW = 'nairu2026';
+let me = null;
 
-      function setUser(u) {
-        me = u;
-        document.getElementById('login-chip').style.display = 'none';
-        const uc = document.getElementById('user-chip');
-        uc.style.display = 'flex';
-        document.getElementById('u-av').textContent = u.init;
-        document.getElementById('u-nm').textContent = u.name;
-        document.getElementById('um-name').textContent = u.name;
-        document.getElementById('um-role').textContent =
-          u.role === 'admin' ? '管理者 / ADMIN' : '観測者 / OBSERVER';
-        if (u.role === 'admin') {
-          document.getElementById('menu-admin').classList.remove('hidden');
-          document.getElementById('admin-no').style.display = 'none';
-          document.getElementById('admin-panel').style.display = 'block';
-        }
-        document.getElementById('b-login-req').style.display = 'none';
-        document.getElementById('b-form').style.display = 'block';
-      }
+// ---- STARS ----
+const cv = document.getElementById('bg'), cx = cv.getContext('2d');
+let stars = [];
+function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;stars=[];for(let i=0;i<200;i++)stars.push({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.5+0.3,o:Math.random(),s:Math.random()*0.008+0.003});}
+let ss={x:0,y:0,vx:0,vy:0,a:false};
+function nss(){ss.x=Math.random()*cv.width*.5;ss.y=Math.random()*cv.height*.3;ss.vx=13+Math.random()*5;ss.vy=5+Math.random()*4;ss.a=true;setTimeout(nss,4000+Math.random()*4000);}
+nss();
+function draw(){cx.clearRect(0,0,cv.width,cv.height);stars.forEach(s=>{s.o+=s.s;if(s.o>1||s.o<.1)s.s*=-1;cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);cx.fillStyle=`rgba(180,210,255,${Math.abs(s.o)})`;cx.fill();});if(ss.a){cx.beginPath();cx.strokeStyle='rgba(255,255,255,.75)';cx.lineWidth=1.5;cx.lineCap='round';cx.moveTo(ss.x,ss.y);cx.lineTo(ss.x-ss.vx*3,ss.y-ss.vy*3);cx.stroke();ss.x+=ss.vx;ss.y+=ss.vy;if(ss.x>cv.width||ss.y>cv.height)ss.a=false;}requestAnimationFrame(draw);}
+rsz();draw();window.addEventListener('resize',rsz);
 
-      function doLogout() {
-        me = null;
-        document.getElementById('login-chip').style.display = '';
-        document.getElementById('user-chip').style.display = 'none';
-        document.getElementById('menu-admin').classList.add('hidden');
-        document.getElementById('admin-no').style.display = 'block';
-        document.getElementById('admin-panel').style.display = 'none';
-        document.getElementById('b-login-req').style.display = 'block';
-        document.getElementById('b-form').style.display = 'none';
-        closeUMenu();
-        goPage('home');
-      }
+// ---- NAV ----
+function toggleSide(){document.getElementById('side').classList.toggle('on');document.getElementById('sov').classList.toggle('on');}
+function closeSide(){document.getElementById('side').classList.remove('on');document.getElementById('sov').classList.remove('on');}
+function goPage(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  document.querySelectorAll('.mitem').forEach(m=>m.classList.toggle('act',m.dataset.pg===id));
+  closeSide();closeUMenu();
+}
 
-      // ---- INTERACTIONS ----
-      function react(btn) {
-        if (!me) {
-          openLogin();
-          return;
-        }
-        btn.classList.toggle('on');
-        const p = btn.textContent.trim().split(' ');
-        let n = parseInt(p[p.length - 1]);
-        n = btn.classList.contains('on') ? n + 1 : n - 1;
-        p[p.length - 1] = n;
-        btn.textContent = p.join(' ');
-      }
+// ---- USER MENU ----
+function toggleUMenu(){document.getElementById('umenu').classList.toggle('on');}
+function closeUMenu(){document.getElementById('umenu').classList.remove('on');}
+document.addEventListener('click',e=>{if(!e.target.closest('#umenu')&&!e.target.closest('#user-chip'))closeUMenu();});
 
-      function cpTag(el, tag) {
-        navigator.clipboard.writeText(tag).catch(() => {});
-        const m = el.querySelector('.copied');
-        m.textContent = 'コピーしたよ！';
-        setTimeout(() => (m.textContent = ''), 2000);
-      }
+// ---- LOGIN ----
+function openLogin(){document.getElementById('login-modal').classList.add('on');closeUMenu();}
+function closeLogin(){document.getElementById('login-modal').classList.remove('on');document.getElementById('m-err').textContent='';}
 
-      function postComment() {
-        if (!me) return;
-        const txt = document.getElementById('c-input').value.trim();
-        if (!txt) return;
-        const cols = ['#185fa5', '#0c447c', '#042c53', '#378add'];
-        const col = cols[Math.floor(Math.random() * cols.length)];
-        const d = document.createElement('div');
-        d.className = 'comment-card';
-        d.innerHTML = `<div class="c-head"><div class="c-av" style="background:${col};">${me.init}</div><div class="c-name">${me.name}</div><div class="c-time">たった今</div></div><div class="c-body">${txt}</div>`;
-        document.getElementById('comment-list').prepend(d);
-        document.getElementById('c-input').value = '';
-      }
+function xLogin(){
+  const nm='X観測者_'+Math.floor(Math.random()*9000+1000);
+  setUser({name:nm,role:'observer',init:nm[0]});closeLogin();
+}
 
-      // ---- ADMIN ----
-      function postNews() {
-        const type = document.getElementById('a-ntype').value;
-        const title = document.getElementById('a-ntitle').value;
-        const body = document.getElementById('a-nbody').value;
-        if (!title || !body) return;
-        const d = document.createElement('div');
-        d.className = 'news-card';
-        d.innerHTML = `<div class="nbadge">${type}</div><div class="ntitle">${title}</div><div class="nbody">${body}</div><div class="ntime">たった今</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
-        document.getElementById('news-list').prepend(d);
-        document.getElementById('a-ntitle').value = '';
-        document.getElementById('a-nbody').value = '';
-      }
+function doLogin(){
+  const nm=document.getElementById('m-name').value.trim();
+  const pw=document.getElementById('m-pw').value;
+  if(!nm){document.getElementById('m-err').textContent='観測者名を入力してね';return;}
+  if(pw&&pw!==ADMIN_PW){document.getElementById('m-err').textContent='管理者パスワードが違います';return;}
+  const role=pw===ADMIN_PW?'admin':'observer';
+  setUser({name:nm,role,init:nm[0]});closeLogin();
+}
 
-      function addSched() {
-        const v = ['a-sday', 'a-sdate', 'a-stitle', 'a-stime', 'a-stag'].map(
-          (i) => document.getElementById(i).value
-        );
-        if (!v[2]) return;
-        const d = document.createElement('div');
-        d.className = 'sched-item';
-        d.innerHTML = `<div class="sd"><div class="sd-day">${v[0]}</div><div class="sd-num">${v[1]}</div></div><div class="si"><div class="si-t">${v[2]}</div><div class="si-time">${v[3]}</div></div><div class="stag">${v[4]}</div>`;
-        document.getElementById('sched-list').appendChild(d);
-        ['a-sday', 'a-sdate', 'a-stitle', 'a-stime', 'a-stag'].forEach(
-          (i) => (document.getElementById(i).value = '')
-        );
-      }
+function setUser(u){
+  me=u;
+  document.getElementById('login-chip').style.display='none';
+  const uc=document.getElementById('user-chip');uc.style.display='flex';
+  document.getElementById('u-av').textContent=u.init;
+  document.getElementById('u-nm').textContent=u.name;
+  document.getElementById('um-name').textContent=u.name;
+  document.getElementById('um-role').textContent=u.role==='admin'?'管理者 / ADMIN':'観測者 / OBSERVER';
+  if(u.role==='admin'){
+    document.getElementById('menu-admin').classList.remove('hidden');
+    document.getElementById('admin-no').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+  }
+  document.getElementById('b-login-req').style.display='none';
+  document.getElementById('b-form').style.display='block';
+}
 
-      function addGoods() {
-        const nm = document.getElementById('a-gname').value;
-        const pr = document.getElementById('a-gprice').value;
-        const url =
-          document.getElementById('a-gurl').value ||
-          'https://nailu-x.booth.pm/';
-        if (!nm) return;
-        const d = document.createElement('a');
-        d.className = 'goods-card';
-        d.href = url;
-        d.target = '_blank';
-        d.innerHTML = `<div class="goods-img">🛍</div><div class="goods-info"><div class="goods-name">${nm}</div><div class="goods-price">${pr}</div></div>`;
-        document.getElementById('goods-grid').appendChild(d);
-        ['a-gname', 'a-gprice', 'a-gurl'].forEach(
-          (i) => (document.getElementById(i).value = '')
-        );
-      }
+function doLogout(){
+  me=null;
+  document.getElementById('login-chip').style.display='';
+  document.getElementById('user-chip').style.display='none';
+  document.getElementById('menu-admin').classList.add('hidden');
+  document.getElementById('admin-no').style.display='block';
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('b-login-req').style.display='block';
+  document.getElementById('b-form').style.display='none';
+  closeUMenu();goPage('home');
+}
 
-      // ---- COUNTDOWN ----
-      const TARGET = new Date('2026-04-19T18:00:00+09:00');
-      function tick() {
-        const diff = TARGET - new Date();
-        if (diff <= 0) {
-          document.getElementById('cd').textContent = '配信中！';
-          return;
-        }
-        const d = Math.floor(diff / 86400000),
-          h = Math.floor((diff % 86400000) / 3600000),
-          m = Math.floor((diff % 3600000) / 60000),
-          s = Math.floor((diff % 60000) / 1000);
-        document.getElementById('cd').textContent = `${String(d).padStart(
-          2,
-          '0'
-        )}d ${String(h).padStart(2, '0')}h ${String(m).padStart(
-          2,
-          '0'
-        )}m ${String(s).padStart(2, '0')}s`;
-      }
-      setInterval(tick, 1000);
-      tick();
+// ---- INTERACTIONS ----
+function react(btn){
+  if(!me){openLogin();return;}
+  btn.classList.toggle('on');
+  const p=btn.textContent.trim().split(' ');
+  let n=parseInt(p[p.length-1]);
+  n=btn.classList.contains('on')?n+1:n-1;
+  p[p.length-1]=n;btn.textContent=p.join(' ');
+}
 
-      // ---- PWA INSTALL ----
-      let deferredPrompt = null;
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('install-banner').classList.add('on');
-      });
-      document.getElementById('ib-btn').addEventListener('click', () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-          deferredPrompt = null;
-          document.getElementById('install-banner').classList.remove('on');
-        });
-      });
+function cpTag(el,tag){
+  navigator.clipboard.writeText(tag).catch(()=>{});
+  const m=el.querySelector('.copied');m.textContent='コピーしたよ！';setTimeout(()=>m.textContent='',2000);
+}
 
-      // ---- SERVICE WORKER ----
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-      }
-    </script>
-  </body>
+function postComment(){
+  if(!me)return;
+  const txt=document.getElementById('c-input').value.trim();if(!txt)return;
+  const cols=['#185fa5','#0c447c','#042c53','#378add'];
+  const col=cols[Math.floor(Math.random()*cols.length)];
+  const d=document.createElement('div');d.className='comment-card';
+  d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${me.init}</div><div class="c-name">${me.name}</div><div class="c-time">たった今</div></div><div class="c-body">${txt}</div>`;
+  document.getElementById('comment-list').prepend(d);
+  document.getElementById('c-input').value='';
+}
+
+// ---- ADMIN ----
+function postNews(){
+  const type=document.getElementById('a-ntype').value;
+  const title=document.getElementById('a-ntitle').value;
+  const body=document.getElementById('a-nbody').value;
+  if(!title||!body)return;
+  const d=document.createElement('div');d.className='news-card';
+  d.innerHTML=`<div class="nbadge">${type}</div><div class="ntitle">${title}</div><div class="nbody">${body}</div><div class="ntime">たった今</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
+  document.getElementById('news-list').prepend(d);
+  document.getElementById('a-ntitle').value='';document.getElementById('a-nbody').value='';
+}
+
+function addSched(){
+  const v=['a-sday','a-sdate','a-stitle','a-stime','a-stag'].map(i=>document.getElementById(i).value);
+  if(!v[2])return;
+  const d=document.createElement('div');d.className='sched-item';
+  d.innerHTML=`<div class="sd"><div class="sd-day">${v[0]}</div><div class="sd-num">${v[1]}</div></div><div class="si"><div class="si-t">${v[2]}</div><div class="si-time">${v[3]}</div></div><div class="stag">${v[4]}</div>`;
+  document.getElementById('sched-list').appendChild(d);
+  ['a-sday','a-sdate','a-stitle','a-stime','a-stag'].forEach(i=>document.getElementById(i).value='');
+}
+
+function addGoods(){
+  const nm=document.getElementById('a-gname').value;
+  const pr=document.getElementById('a-gprice').value;
+  const url=document.getElementById('a-gurl').value||'https://nailu-x.booth.pm/';
+  if(!nm)return;
+  const d=document.createElement('a');d.className='goods-card';d.href=url;d.target='_blank';
+  d.innerHTML=`<div class="goods-img">🛍</div><div class="goods-info"><div class="goods-name">${nm}</div><div class="goods-price">${pr}</div></div>`;
+  document.getElementById('goods-grid').appendChild(d);
+  ['a-gname','a-gprice','a-gurl'].forEach(i=>document.getElementById(i).value='');
+}
+
+// ---- COUNTDOWN ----
+const TARGET=new Date('2026-04-19T18:00:00+09:00');
+function tick(){
+  const diff=TARGET-new Date();
+  if(diff<=0){document.getElementById('cd').textContent='配信中！';return;}
+  const d=Math.floor(diff/86400000),h=Math.floor(diff%86400000/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000);
+  document.getElementById('cd').textContent=`${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+}
+setInterval(tick,1000);tick();
+
+// ---- PWA INSTALL ----
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('on');
+});
+document.getElementById('ib-btn').addEventListener('click',()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').classList.remove('on');});
+});
+
+// ---- PWA SERVICE WORKER ----
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPA_URL = 'https://tghzvpogpuijbxsrwjgt.supabase.co';
+const SUPA_KEY = 'sb_publishable_DL8vjJ-_DsSucvunEJmx_Q_hvEcRcke';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ---- 掲示板：投稿をSupabaseに保存 ----
+async function postComment(){
+  if(!me) return;
+  const txt = document.getElementById('c-input').value.trim();
+  if(!txt) return;
+
+  // UIに即時反映
+  const cols=['#185fa5','#0c447c','#042c53','#378add'];
+  const col = cols[Math.floor(Math.random()*cols.length)];
+  const d = document.createElement('div'); d.className='comment-card';
+  d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${me.init}</div><div class="c-name">${me.name}</div><div class="c-time">たった今</div></div><div class="c-body">${txt}</div>`;
+  document.getElementById('comment-list').prepend(d);
+  document.getElementById('c-input').value='';
+
+  // Supabaseに保存
+  await sb.from('posts').insert({ user_name: me.name, body: txt });
+}
+
+// ---- 掲示板：起動時に読み込み ----
+async function loadPosts(){
+  const { data } = await sb.from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+  if(!data) return;
+  const list = document.getElementById('comment-list');
+  list.innerHTML = '';
+  const cols=['#185fa5','#0c447c','#042c53','#378add'];
+  data.forEach(p => {
+    const col = cols[Math.floor(Math.random()*cols.length)];
+    const init = p.user_name ? p.user_name[0] : '?';
+    const time = new Date(p.created_at).toLocaleString('ja-JP', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const d = document.createElement('div'); d.className='comment-card';
+    d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body}</div>`;
+    list.appendChild(d);
+  });
+}
+
+// ---- 掲示板：リアルタイム同期 ----
+sb.channel('posts-channel')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
+    const p = payload.new;
+    const cols=['#185fa5','#0c447c','#042c53','#378add'];
+    const col = cols[Math.floor(Math.random()*cols.length)];
+    const init = p.user_name ? p.user_name[0] : '?';
+    const d = document.createElement('div'); d.className='comment-card';
+    d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">たった今</div></div><div class="c-body">${p.body}</div>`;
+    document.getElementById('comment-list').prepend(d);
+  })
+  .subscribe();
+
+// ---- スケジュール：Supabaseに保存 ----
+async function addSched(){
+  const v=['a-sday','a-sdate','a-stitle','a-stime','a-stag'].map(i=>document.getElementById(i).value);
+  if(!v[2]) return;
+
+  // UIに即時反映
+  const d=document.createElement('div');d.className='sched-item';
+  d.innerHTML=`<div class="sd"><div class="sd-day">${v[0]}</div><div class="sd-num">${v[1]}</div></div><div class="si"><div class="si-t">${v[2]}</div><div class="si-time">${v[3]}</div></div><div class="stag">${v[4]}</div>`;
+  document.getElementById('sched-list').appendChild(d);
+  ['a-sday','a-sdate','a-stitle','a-stime','a-stag'].forEach(i=>document.getElementById(i).value='');
+
+  // Supabaseに保存
+  await sb.from('schedules').insert({ day:v[0], date:v[1], title:v[2], time:v[3], tag:v[4] });
+}
+
+// ---- スケジュール：起動時に読み込み ----
+async function loadSchedules(){
+  const { data } = await sb.from('schedules').select('*').order('created_at', { ascending: true });
+  if(!data || data.length===0) return;
+  // DBにデータがあれば既存のサンプルを消して差し替え
+  const list = document.getElementById('sched-list');
+  list.innerHTML = '';
+  data.forEach(s => {
+    const d=document.createElement('div');d.className='sched-item';
+    d.innerHTML=`<div class="sd"><div class="sd-day">${s.day||''}</div><div class="sd-num">${s.date||''}</div></div><div class="si"><div class="si-t">${s.title}</div><div class="si-time">${s.time||''}</div></div><div class="stag">${s.tag||''}</div>`;
+    list.appendChild(d);
+  });
+}
+
+// ---- グッズ：Supabaseに保存 ----
+async function addGoods(){
+  const nm=document.getElementById('a-gname').value;
+  const pr=document.getElementById('a-gprice').value;
+  const url=document.getElementById('a-gurl').value||'https://nailu-x.booth.pm/';
+  if(!nm) return;
+
+  // UIに即時反映
+  const d=document.createElement('a');d.className='goods-card';d.href=url;d.target='_blank';
+  d.innerHTML=`<div class="goods-img">🛍</div><div class="goods-info"><div class="goods-name">${nm}</div><div class="goods-price">${pr}</div></div>`;
+  document.getElementById('goods-grid').appendChild(d);
+  ['a-gname','a-gprice','a-gurl'].forEach(i=>document.getElementById(i).value='');
+
+  // Supabaseに保存
+  await sb.from('goods').insert({ name:nm, price:pr, url });
+}
+
+// ---- グッズ：起動時に読み込み ----
+async function loadGoods(){
+  const { data } = await sb.from('goods').select('*').order('created_at', { ascending: true });
+  if(!data || data.length===0) return;
+  // DBにデータがあれば既存のサンプルを消して差し替え
+  const grid = document.getElementById('goods-grid');
+  grid.innerHTML = '';
+  data.forEach(g => {
+    const d=document.createElement('a');d.className='goods-card';d.href=g.url||'https://nailu-x.booth.pm/';d.target='_blank';
+    d.innerHTML=`<div class="goods-img">🛍</div><div class="goods-info"><div class="goods-name">${g.name}</div><div class="goods-price">${g.price||''}</div></div>`;
+    grid.appendChild(d);
+  });
+}
+
+// ---- 起動時に全データ読み込み ----
+window.addEventListener('load', () => {
+  loadPosts();
+  loadSchedules();
+  loadGoods();
+});
+</script>
+</body>
 </html>
