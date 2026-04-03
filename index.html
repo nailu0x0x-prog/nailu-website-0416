@@ -219,18 +219,29 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
   <!-- LOGIN MODAL -->
   <div class="modal-bg" id="login-modal">
     <div class="modal">
-      <div class="modal-title">観測所にログイン</div>
-      <div class="modal-sub">OBSERVATION STATION</div>
-      <button class="x-btn" onclick="xLogin()">
-        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        X アカウントでログイン
-      </button>
-      <div class="divider"><span></span><p>または ニックネームで</p><span></span></div>
-      <div class="modal-err" id="m-err"></div>
-      <input class="modal-input" id="m-name" placeholder="観測者名（ニックネーム）">
-      <input class="modal-input" id="m-pw" type="password" placeholder="パスワード（管理者のみ入力）">
-      <button class="modal-btn" onclick="doLogin()">ログイン / 新規登録</button>
-      <button class="modal-cancel" onclick="closeLogin()">キャンセル</button>
+      <div id="view-login">
+        <div class="modal-title">観測所にログイン</div>
+        <div class="modal-sub">OBSERVATION STATION</div>
+        <div class="modal-err" id="m-err"></div>
+        <input class="modal-input" id="m-name" placeholder="観測者名（ニックネーム）">
+        <input class="modal-input" id="m-bday" type="date">
+        <input class="modal-input" id="m-pw" type="password" placeholder="パスワード">
+        <button class="modal-btn" onclick="doLogin()">ログイン</button>
+        <div class="divider"><span></span><p>アカウントがない場合</p><span></span></div>
+        <button class="modal-btn" style="background:none;border-color:rgba(55,138,221,0.3);" onclick="switchView('register')">新規登録はこちら</button>
+        <button class="modal-cancel" onclick="closeLogin()">キャンセル</button>
+      </div>
+      <div id="view-register" style="display:none;">
+        <div class="modal-title">観測者として登録</div>
+        <div class="modal-sub">NEW OBSERVER</div>
+        <div class="modal-err" id="r-err"></div>
+        <input class="modal-input" id="r-name" placeholder="観測者名（ニックネーム）">
+        <input class="modal-input" id="r-bday" type="date">
+        <input class="modal-input" id="r-pw" type="password" placeholder="パスワード（6文字以上）">
+        <input class="modal-input" id="r-pw2" type="password" placeholder="パスワード（確認）">
+        <button class="modal-btn" onclick="doRegister()">登録する</button>
+        <button class="modal-cancel" onclick="switchView('login')">← ログインに戻る</button>
+      </div>
     </div>
   </div>
 
@@ -427,18 +438,53 @@ document.addEventListener('click',e=>{if(!e.target.closest('#umenu')&&!e.target.
 function openLogin(){document.getElementById('login-modal').classList.add('on');closeUMenu();}
 function closeLogin(){document.getElementById('login-modal').classList.remove('on');document.getElementById('m-err').textContent='';}
 
-function xLogin(){
-  const nm='X観測者_'+Math.floor(Math.random()*9000+1000);
-  setUser({name:nm,role:'observer',init:nm[0]});closeLogin();
+function switchView(v){
+  document.getElementById('view-login').style.display = v==='login'?'block':'none';
+  document.getElementById('view-register').style.display = v==='register'?'block':'none';
+  document.getElementById('m-err').textContent='';
+  if(document.getElementById('r-err')) document.getElementById('r-err').textContent='';
+}
+
+// ユーザーデータをlocalStorageに保存（簡易DB）
+function getUsers(){ try{return JSON.parse(localStorage.getItem('nairu_users')||'{}');}catch{return {};} }
+function saveUsers(u){ localStorage.setItem('nairu_users', JSON.stringify(u)); }
+
+function doRegister(){
+  const nm = document.getElementById('r-name').value.trim();
+  const bd = document.getElementById('r-bday').value;
+  const pw = document.getElementById('r-pw').value;
+  const pw2 = document.getElementById('r-pw2').value;
+  const err = document.getElementById('r-err');
+  if(!nm){ err.textContent='観測者名を入力してね'; return; }
+  if(!bd){ err.textContent='誕生日を入力してね'; return; }
+  if(pw.length < 6){ err.textContent='パスワードは6文字以上にしてね'; return; }
+  if(pw !== pw2){ err.textContent='パスワードが一致しないよ'; return; }
+  const users = getUsers();
+  if(users[nm]){ err.textContent='その名前はもう使われてるよ'; return; }
+  users[nm] = { bday: bd, pw: pw };
+  saveUsers(users);
+  setUser({ name: nm, role: 'observer', init: nm[0], bday: bd });
+  closeLogin();
 }
 
 function doLogin(){
-  const nm=document.getElementById('m-name').value.trim();
-  const pw=document.getElementById('m-pw').value;
-  if(!nm){document.getElementById('m-err').textContent='観測者名を入力してね';return;}
-  if(pw&&pw!==ADMIN_PW){document.getElementById('m-err').textContent='管理者パスワードが違います';return;}
-  const role=pw===ADMIN_PW?'admin':'observer';
-  setUser({name:nm,role,init:nm[0]});closeLogin();
+  const nm = document.getElementById('m-name').value.trim();
+  const bd = document.getElementById('m-bday').value;
+  const pw = document.getElementById('m-pw').value;
+  const err = document.getElementById('m-err');
+  if(!nm){ err.textContent='観測者名を入力してね'; return; }
+  // 管理者チェック
+  if(pw === ADMIN_PW){
+    setUser({ name: nm, role: 'admin', init: nm[0], bday: bd });
+    closeLogin(); return;
+  }
+  // 一般ユーザーチェック
+  const users = getUsers();
+  if(!users[nm]){ err.textContent='アカウントが見つからないよ。新規登録してね'; return; }
+  if(users[nm].pw !== pw){ err.textContent='パスワードが違うよ'; return; }
+  if(users[nm].bday !== bd){ err.textContent='誕生日が違うよ'; return; }
+  setUser({ name: nm, role: 'observer', init: nm[0], bday: bd });
+  closeLogin();
 }
 
 function setUser(u){
