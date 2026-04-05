@@ -685,7 +685,7 @@ async function renderMypage(){
   // 会員ID（Supabase IDの末尾6桁 or ランダム）
   const memberId=me.id?String(me.id).padStart(6,'0'):'??????';
   // 表示
-  document.getElementById('mc-av').textContent=me.init;
+  document.getElementById('mc-av-init').textContent=me.init;
   document.getElementById('mc-name').textContent=me.name;
   document.getElementById('mc-role').textContent=me.role==='admin'?'ADMIN':'OBSERVER';
   document.getElementById('mc-id').textContent=`ID: #${memberId}`;
@@ -697,6 +697,8 @@ async function renderMypage(){
   document.getElementById('bday-cd-num').textContent=bdayText;
   document.getElementById('bday-cd-sub').textContent=bdayToday?'今日が誕生日！🎂':'次の誕生日まで';
   document.getElementById('bday-banner').style.display=bdayToday?'block':'none';
+  // アバター再適用
+  if(me.avatar_url) applyAvatar(me.avatar_url);
 }
 
 // ---- BOARD ----
