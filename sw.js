@@ -1,41 +1,20 @@
-const CACHE = 'nairu-v2';
-const STATIC = [
-  '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&display=swap'
-];
+const CACHE = 'nairu-v3';
 
+// インストール時：キャッシュせず即起動
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(STATIC)).then(() => self.skipWaiting())
-  );
+  e.waitUntil(self.skipWaiting());
 });
 
+// 古いキャッシュを全削除して即コントロール
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
+// 全リクエストをネットワーク優先（キャッシュしない）
 self.addEventListener('fetch', e => {
-  // index.html は常にネットワークから取得（キャッシュしない）
-  if (e.request.mode === 'navigate' || e.request.url.endsWith('index.html')) {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match('/index.html'))
-    );
-    return;
-  }
-  // その他はキャッシュ優先
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (!res || res.status !== 200 || res.type === 'opaque') return res;
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
-      }).catch(() => caches.match('/index.html'));
-    })
-  );
+  e.respondWith(fetch(e.request).catch(() => new Response('offline', {status: 503})));
 });
