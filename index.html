@@ -956,16 +956,22 @@ async function confirmCrop(){
   const ctx=canvas.getContext('2d');
   ctx.beginPath();ctx.arc(140,140,140,0,Math.PI*2);ctx.clip();
   ctx.drawImage(img,cropX,cropY,img.naturalWidth*cropScale,img.naturalHeight*cropScale);
-  const base64=canvas.toDataURL('image/jpeg',0.85);
   closeCropModal();
-  // Storage にアップロード、失敗したらbase64をそのままDB保存
-  const blob=await(await fetch(base64)).blob();
-  let url=await uploadToStorage(`avatars/user_${me.id}.jpg`,new File([blob],'avatar.jpg',{type:'image/jpeg'}));
-  if(!url) url=base64;
-  await sb.from('users').update({avatar_url:url}).eq('id',me.id).catch(()=>{});
-  me.avatar_url=url;
-  localStorage.setItem('me',JSON.stringify(me));
-  applyAvatar(url);
+  try {
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.85));
+    let url=await uploadToStorage(`avatars/user_${me.id}.jpg`,new File([blob],'avatar.jpg',{type:'image/jpeg'}));
+    if(!url) url=canvas.toDataURL('image/jpeg',0.85);
+    await sb.from('users').update({avatar_url:url}).eq('id',me.id).catch(()=>{});
+    me.avatar_url=url;
+    try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+    applyAvatar(url);
+  } catch(e) {
+    console.error('アバター保存エラー:',e);
+    const fallback=canvas.toDataURL('image/jpeg',0.85);
+    me.avatar_url=fallback;
+    try{localStorage.setItem('me',JSON.stringify(me));}catch(e2){}
+    applyAvatar(fallback);
+  }
 }
 function applyAvatar(url){
   const img=document.getElementById('mc-av-img');
