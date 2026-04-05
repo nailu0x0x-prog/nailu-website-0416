@@ -1,7 +1,7 @@
 const webpush = require('web-push');
 
-const VAPID_PUBLIC  = 'BAAt0XtMqvp_UaxvQg2YkqgZwzqP9pgZbO5lOU3eAynMN-cScO8wDCQgmNJKaQFpEU8raaM4YOq9AaEO7WMfHpo';
-const VAPID_PRIVATE = 'N-cScO8wDCQgmNJKaQFpEU8raaM4YOq9AaEO7WMfHpo';
+const VAPID_PUBLIC  = 'BFvCl8yYFOBebq3oihDY2Zir0UiyIHJ01wqVEaIUY6_g5U3vf8cAzc_PQQog61fiudehcAem9i0ejnLUqE-BgKE';
+const VAPID_PRIVATE = 'FNgOUapZBzIZEQS_yj7I2lYREAh4dfrEOI-qx7Q0qzU';
 const ADMIN_PW      = 'nairu2026';
 const SUPA_URL      = 'https://tghzvpogpuijbxsrwjgt.supabase.co';
 const SUPA_KEY      = 'sb_publishable_DL8vjJ-_DsSucvunEJmx_Q_hvEcRcke';
