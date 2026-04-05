@@ -1,11 +1,9 @@
-const CACHE = 'nairu-v3';
+const CACHE = 'nairu-v4';
 
-// インストール時：キャッシュせず即起動
 self.addEventListener('install', e => {
   e.waitUntil(self.skipWaiting());
 });
 
-// 古いキャッシュを全削除して即コントロール
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
@@ -14,7 +12,8 @@ self.addEventListener('activate', e => {
   );
 });
 
-// 全リクエストをネットワーク優先（キャッシュしない）
+// 同一オリジン（index.html等）のみ処理、外部API（Supabase等）はスルー
 self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request).catch(() => new Response('offline', {status: 503})));
+  if (!e.request.url.startsWith(self.location.origin)) return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
