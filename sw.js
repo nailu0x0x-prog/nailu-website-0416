@@ -1,14 +1,12 @@
-const CACHE = 'nairu-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
+const CACHE = 'nairu-v2';
+const STATIC = [
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&display=swap'
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(STATIC)).then(() => self.skipWaiting())
   );
 });
 
@@ -21,6 +19,14 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // index.html は常にネットワークから取得（キャッシュしない）
+  if (e.request.mode === 'navigate' || e.request.url.endsWith('index.html')) {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+  // その他はキャッシュ優先
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
