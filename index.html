@@ -195,6 +195,16 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .sw-date{font-size:12px;font-weight:700;}
 .sw-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .sw-full{grid-column:1/-1;}
+/* 削除ボタン共通 */
+.del-btn{display:none;position:absolute;top:8px;right:8px;background:rgba(226,75,74,0.85);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:13px;cursor:pointer;align-items:center;justify-content:center;line-height:1;flex-shrink:0;}
+.admin-mode .del-btn{display:flex;}
+.news-card{position:relative;}
+.comment-card{position:relative;}
+/* YouTube埋め込み */
+.yt-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:10px;margin-bottom:4px;}
+.yt-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+/* 自己紹介 */
+.intro-text{font-size:12px;color:rgba(255,255,255,0.75);line-height:2;white-space:pre-wrap;}
 </style>
 </head>
 <body>
@@ -280,6 +290,22 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
         <span id="live-text">次回配信: 4/19 18:00</span>
       </a>
     </div>
+    <div class="card" id="home-intro-card">
+      <h3>SELF INTRODUCTION</h3>
+      <div class="intro-text" id="home-intro-text">みんなの光になりたいな！
+15歳のクリエイター系Vtuber！
+映像・デザイン制作が大好きで、毎日楽しく活動してるよ🌌
+ないるの観測所にようこそ！</div>
+    </div>
+    <div class="card" id="home-yt-card" style="display:none;">
+      <h3>LATEST VIDEO</h3>
+      <div id="home-yt-wrap"></div>
+    </div>
+    <div id="home-news-card" style="display:none;">
+      <div class="sec-title" style="margin-bottom:10px;">おしらせ</div>
+      <div id="home-news-item"></div>
+      <div style="text-align:center;margin-bottom:14px;"><span style="font-size:11px;color:#378add;cursor:pointer;letter-spacing:0.1em;" onclick="goPage('news')">もっと見る →</span></div>
+    </div>
     <div class="card">
       <h3>PROFILE</h3>
       <div class="prow"><span>Name</span><span>ないる</span></div>
@@ -317,11 +343,7 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
     <div class="notif-toggle"><span>配信開始通知</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
     <div class="notif-toggle"><span>日常ひとこと通知</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
     <div class="notif-toggle"><span>重要なお知らせ</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
-    <div style="margin-top:18px;" id="news-list">
-      <div class="news-card"><div class="nbadge">IMPORTANT</div><div class="ntitle">🌌 拡散希望！！✨</div><div class="nbody">たくさん拡散してぼくを広めてー！よろしくね🌌✨</div><div class="ntime">2時間前</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 12</button><button class="rbtn" onclick="react(this)">🌌 拡散 5</button></div></div>
-      <div class="news-card"><div class="nbadge">INFO</div><div class="ntitle">初配信まであと少し！</div><div class="nbody">4/19 18:00 から初配信するよ！みんな来てね〜！</div><div class="ntime">1日前</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 楽しみ 24</button></div></div>
-      <div class="news-card"><div class="nbadge">DAILY</div><div class="ntitle">今日のひとこと</div><div class="nbody">デザイン作業が楽しすぎて夜更かししちゃった☆</div><div class="ntime">3日前</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ わかる 8</button></div></div>
-    </div>
+    <div style="margin-top:18px;" id="news-list"></div>
   </div>
 
   <!-- SCHEDULE -->
@@ -356,10 +378,7 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
       <textarea id="c-input" rows="3" placeholder="観測所からメッセージを送ろう..."></textarea>
       <button class="post-btn" onclick="postComment()">投稿する</button>
     </div>
-    <div id="comment-list">
-      <div class="comment-card"><div class="c-head"><div class="c-av" style="background:#185fa5;">星</div><div class="c-name">星空観測者</div><div class="c-time">1時間前</div></div><div class="c-body">初配信楽しみすぎる！！絶対見に行きます🌌</div></div>
-      <div class="comment-card"><div class="c-head"><div class="c-av" style="background:#0c447c;">月</div><div class="c-name">月光ウォッチャー</div><div class="c-time">3時間前</div></div><div class="c-body">デザインめちゃくちゃ好きです✨ファンになりました！</div></div>
-    </div>
+    <div id="comment-list"></div>
   </div>
 
   <!-- MYPAGE -->
@@ -413,6 +432,18 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
     <div class="sec-title">管理画面</div>
     <div id="admin-no" class="admin-no"><p>管理画面は<br>ないるのみアクセスできます</p><button class="modal-btn" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto;display:block;" onclick="openLogin()">ログイン</button></div>
     <div id="admin-panel" style="display:none;">
+      <div class="card">
+        <h3>自己紹介文を編集</h3>
+        <div class="upload-msg" id="intro-save-msg"></div>
+        <textarea class="admin-input" id="a-intro" rows="5" style="resize:none;"></textarea>
+        <button class="admin-btn" onclick="saveIntro()">保存する</button>
+      </div>
+      <div class="card">
+        <h3>最新動画のURL</h3>
+        <div class="upload-msg" id="yt-save-msg"></div>
+        <input class="admin-input" id="a-yturl" placeholder="YouTubeのURL (例: https://youtu.be/xxxxx)">
+        <button class="admin-btn" onclick="saveYtUrl()">保存する</button>
+      </div>
       <div class="card">
         <h3>おしらせを投稿</h3>
         <select class="admin-input" id="a-ntype"><option>INFO</option><option>IMPORTANT</option><option>DAILY</option></select>
@@ -569,8 +600,11 @@ function setUser(u){
     document.getElementById('admin-no').style.display='none';
     document.getElementById('admin-panel').style.display='block';
     document.getElementById('goods-grid').classList.add('admin-mode');
+    document.getElementById('news-list').classList.add('admin-mode');
+    document.getElementById('comment-list').classList.add('admin-mode');
     loadWeekSchedForAdmin();
     setLiveMode('off');
+    document.getElementById('a-intro').value=document.getElementById('home-intro-text').textContent;
   }
   // 保存済みアバターを復元
   const savedAv=localStorage.getItem(`avatar_${u.id}`);
@@ -587,6 +621,8 @@ function doLogout(){
   document.getElementById('admin-no').style.display='block';
   document.getElementById('admin-panel').style.display='none';
   document.getElementById('goods-grid').classList.remove('admin-mode');
+  document.getElementById('news-list').classList.remove('admin-mode');
+  document.getElementById('comment-list').classList.remove('admin-mode');
   document.getElementById('b-login-req').style.display='block';
   document.getElementById('b-form').style.display='none';
   document.getElementById('mypage-login-req').style.display='block';
@@ -647,6 +683,13 @@ async function postComment(){
   await sb.from('posts').insert({user_name:me.name,body:txt});
 }
 
+function makeCommentCard(p,col){
+  const init=p.user_name?p.user_name[0]:'?';
+  const time=p.created_at?new Date(p.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'たった今';
+  const d=document.createElement('div');d.className='comment-card';d.dataset.id=p.id||'';
+  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'${p.id||''}')">✕</button><div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body}</div>`;
+  return d;
+}
 async function loadPosts(){
   const{data}=await sb.from('posts').select('*').order('created_at',{ascending:false}).limit(50);
   if(!data)return;
@@ -654,33 +697,64 @@ async function loadPosts(){
   const cols=['#185fa5','#0c447c','#042c53','#378add'];
   data.forEach(p=>{
     const col=cols[Math.floor(Math.random()*cols.length)];
-    const init=p.user_name?p.user_name[0]:'?';
-    const time=new Date(p.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    const d=document.createElement('div');d.className='comment-card';
-    d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body}</div>`;
-    list.appendChild(d);
+    list.appendChild(makeCommentCard(p,col));
   });
+}
+async function deletePost(btn,id){
+  if(!confirm('この投稿を削除する？'))return;
+  btn.closest('.comment-card').remove();
+  if(id) await sb.from('posts').delete().eq('id',id);
 }
 
 sb.channel('posts-ch').on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'},payload=>{
   const p=payload.new;
   const cols=['#185fa5','#0c447c','#042c53','#378add'];
   const col=cols[Math.floor(Math.random()*cols.length)];
-  const d=document.createElement('div');d.className='comment-card';
-  d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${p.user_name[0]}</div><div class="c-name">${p.user_name}</div><div class="c-time">たった今</div></div><div class="c-body">${p.body}</div>`;
-  document.getElementById('comment-list').prepend(d);
+  document.getElementById('comment-list').prepend(makeCommentCard(p,col));
 }).subscribe();
 
 // ---- ADMIN ----
+function makeNewsCard(n){
+  const d=document.createElement('div');d.className='news-card';
+  const id=n.id||'';
+  d.dataset.id=id;
+  d.innerHTML=`<button class="del-btn" onclick="deleteNews(this,'${id}')">✕</button><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${n.time||'たった今'}</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
+  return d;
+}
 function postNews(){
   const type=document.getElementById('a-ntype').value;
   const title=document.getElementById('a-ntitle').value;
   const body=document.getElementById('a-nbody').value;
   if(!title||!body)return;
-  const d=document.createElement('div');d.className='news-card';
-  d.innerHTML=`<div class="nbadge">${type}</div><div class="ntitle">${title}</div><div class="nbody">${body}</div><div class="ntime">たった今</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
-  document.getElementById('news-list').prepend(d);
+  const news=loadNewsData();
+  const id=Date.now().toString();
+  const item={id,type,title,body,time:'たった今'};
+  news.unshift(item);
+  saveNewsData(news);
+  document.getElementById('news-list').prepend(makeNewsCard(item));
+  renderHomeNews(news);
   document.getElementById('a-ntitle').value='';document.getElementById('a-nbody').value='';
+}
+function loadNewsData(){try{return JSON.parse(localStorage.getItem('news_data')||'[]');}catch(e){return[];}}
+function saveNewsData(arr){localStorage.setItem('news_data',JSON.stringify(arr));}
+function deleteNews(btn,id){
+  if(!confirm('このお知らせを削除する？'))return;
+  btn.closest('.news-card').remove();
+  const news=loadNewsData().filter(n=>n.id!==id);
+  saveNewsData(news);
+  renderHomeNews(news);
+}
+function renderAllNews(){
+  const news=loadNewsData();
+  const list=document.getElementById('news-list');list.innerHTML='';
+  news.forEach(n=>list.appendChild(makeNewsCard(n)));
+  renderHomeNews(news);
+}
+function renderHomeNews(news){
+  if(!news||news.length===0){document.getElementById('home-news-card').style.display='none';return;}
+  const n=news[0];
+  document.getElementById('home-news-card').style.display='block';
+  document.getElementById('home-news-item').innerHTML=`<div class="news-card"><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${n.time||''}</div></div>`;
 }
 async function addSched(){
   const v=['a-sday','a-sdate','a-stitle','a-stime','a-stag'].map(i=>document.getElementById(i).value);
@@ -756,7 +830,7 @@ async function deleteGoods(e,btn,id){
   if(id) await sb.from('goods').delete().eq('id',id);
 }
 window.addEventListener('load',()=>{
-  loadPosts();loadSchedules();loadGoods();loadHomeImg();loadLiveStatus();
+  loadPosts();loadSchedules();loadGoods();loadHomeImg();loadLiveStatus();loadIntro();loadYtEmbed();renderAllNews();
   // ログイン状態を復元
   const saved=localStorage.getItem('me');
   if(saved){try{setUser(JSON.parse(saved));}catch(e){localStorage.removeItem('me');}}
@@ -907,6 +981,47 @@ async function saveWeekSched(){
   await loadSchedules();
   msg.textContent='保存しました！';
   setTimeout(()=>msg.textContent='', 2000);
+}
+
+// ---- 自己紹介 ----
+function saveIntro(){
+  const txt=document.getElementById('a-intro').value;
+  localStorage.setItem('home_intro',txt);
+  document.getElementById('home-intro-text').textContent=txt;
+  const msg=document.getElementById('intro-save-msg');
+  msg.textContent='保存しました！';setTimeout(()=>msg.textContent='',2000);
+}
+function loadIntro(){
+  const saved=localStorage.getItem('home_intro');
+  if(saved){document.getElementById('home-intro-text').textContent=saved;}
+  const el=document.getElementById('a-intro');
+  if(el) el.value=document.getElementById('home-intro-text').textContent;
+}
+
+// ---- YouTube ----
+function ytIdFromUrl(url){
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function saveYtUrl(){
+  const url=document.getElementById('a-yturl').value.trim();
+  const msg=document.getElementById('yt-save-msg');
+  if(!url){msg.textContent='URLを入力してください';return;}
+  const id=ytIdFromUrl(url);
+  if(!id){msg.textContent='YouTubeのURLが正しくないよ';return;}
+  localStorage.setItem('yt_video_id',id);
+  applyYtEmbed(id);
+  msg.textContent='保存しました！';setTimeout(()=>msg.textContent='',2000);
+}
+function applyYtEmbed(id){
+  const card=document.getElementById('home-yt-card');
+  const wrap=document.getElementById('home-yt-wrap');
+  card.style.display='block';
+  wrap.innerHTML=`<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe></div>`;
+}
+function loadYtEmbed(){
+  const id=localStorage.getItem('yt_video_id');
+  if(id) applyYtEmbed(id);
 }
 
 // ---- 配信ステータス ----
