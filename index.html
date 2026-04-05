@@ -351,9 +351,11 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
   <!-- NEWS -->
   <div class="pg" id="pg-news">
     <div class="sec-title">おしらせ</div>
-    <div class="notif-toggle"><span>配信開始通知</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
-    <div class="notif-toggle"><span>日常ひとこと通知</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
-    <div class="notif-toggle"><span>重要なお知らせ</span><div class="tsw on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="notif-toggle">
+      <span>プッシュ通知を受け取る</span>
+      <div class="tsw" id="notif-sw" onclick="togglePushNotif(this)"></div>
+    </div>
+    <div id="notif-status" style="font-size:10px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:10px;letter-spacing:0.05em;"></div>
     <div style="margin-top:18px;" id="news-list"></div>
   </div>
 
@@ -760,6 +762,8 @@ async function postNews(){
   document.getElementById('news-list').prepend(makeNewsCard(item));
   renderHomeNews([item]);
   document.getElementById('a-ntitle').value='';document.getElementById('a-nbody').value='';
+  // プッシュ通知を送信
+  sendPushToAll('📢 '+title, body);
 }
 async function deleteNews(btn,id){
   if(!confirm('このお知らせを削除する？'))return;
@@ -856,7 +860,7 @@ async function deleteGoods(e,btn,id){
   if(id) await sb.from('goods').delete().eq('id',id);
 }
 window.addEventListener('load',()=>{
-  loadPosts();loadSchedules();loadGoods();loadHomeImg();loadLiveStatus();loadIntro();loadYtEmbed();renderAllNews();
+  loadPosts();loadSchedules();loadGoods();loadHomeImg();loadLiveStatus();loadIntro();loadYtEmbed();renderAllNews();checkPushStatus();
   // ログイン状態を復元
   const saved=localStorage.getItem('me');
   if(saved){try{setUser(JSON.parse(saved));}catch(e){localStorage.removeItem('me');}}
@@ -1143,6 +1147,8 @@ async function saveLiveStatus(){
   const url=isLive?'https://twitcasting.tv/g:102965572127691748561':'';
   await sbSet('live_status',{isLive,text,url});
   applyLiveBadge({isLive,text,url});
+  // 配信中になった場合だけ通知
+  if(isLive) sendPushToAll('🔴 ないるが配信中！', 'タップして見に行こう！');
   msg.textContent='保存しました！';
   setTimeout(()=>msg.textContent='',2000);
 }
@@ -1168,6 +1174,89 @@ function applyLiveBadge({isLive,text,url}){
 async function loadLiveStatus(){
   const saved=await sbGet('live_status');
   if(saved) applyLiveBadge(saved);
+}
+
+// ---- プッシュ通知 ----
+const VAPID_PUBLIC_KEY = 'BAAt0XtMqvp_UaxvQg2YkqgZwzqP9pgZbO5lOU3eAynMN-cScO8wDCQgmNJKaQFpEU8raaM4YOq9AaEO7WMfHpo';
+
+async function togglePushNotif(sw) {
+  const status = document.getElementById('notif-status');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    status.textContent = 'このブラウザはプッシュ通知に対応していません';
+    return;
+  }
+  if (sw.classList.contains('on')) {
+    // 解除
+    await unsubscribePush();
+    sw.classList.remove('on');
+    status.textContent = '通知をオフにしました';
+  } else {
+    // 購読
+    const ok = await subscribePush();
+    if (ok) {
+      sw.classList.add('on');
+      status.textContent = '通知をオンにしました！';
+    } else {
+      status.textContent = '通知の許可が必要です';
+    }
+  }
+  setTimeout(() => status.textContent = '', 3000);
+}
+
+async function subscribePush() {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return false;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+    // Supabase に保存
+    await sb.from('push_subscriptions').insert({ subscription: sub.toJSON() });
+    localStorage.setItem('push_sub', JSON.stringify(sub.toJSON()));
+    return true;
+  } catch (e) { console.error(e); return false; }
+}
+
+async function unsubscribePush() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      // Supabase から削除（endpointで特定）
+      await sb.from('push_subscriptions').delete().filter('subscription->>endpoint', 'eq', endpoint);
+    }
+    localStorage.removeItem('push_sub');
+  } catch (e) { console.error(e); }
+}
+
+async function checkPushStatus() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription().catch(() => null);
+  if (sub) document.getElementById('notif-sw')?.classList.add('on');
+}
+
+async function sendPushToAll(title, message) {
+  // 管理者のみ実行
+  if (!me || me.role !== 'admin') return;
+  try {
+    await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPw: 'nairu2026', title, message })
+    });
+  } catch (e) { console.error(e); }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
 // ---- PWA ----
