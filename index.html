@@ -1001,7 +1001,7 @@ async function deleteGoods(e,btn,id){
   if(id) await sb.from('goods').delete().eq('id',id);
 }
 // ---- カード装飾（三日月・キラキラ）----
-const MOON_SVG=`<svg viewBox="0 0 20 20" fill="white" fill-rule="evenodd" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9"/><circle cx="12" cy="10" r="6"/></svg>`;
+const MOON_SVG=`<svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 const SPARKLE_SVG=`<svg viewBox="0 0 20 20" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M10 0 L11.5 8.5 L20 10 L11.5 11.5 L10 20 L8.5 11.5 L0 10 L8.5 8.5 Z"/></svg>`;
 const CORNERS=[
   {top:'10px',left:'10px'},{top:'10px',right:'10px'},
