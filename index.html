@@ -537,6 +537,7 @@ async function doLogin(){
 
 function setUser(u){
   me=u;
+  localStorage.setItem('me', JSON.stringify(u));
   document.getElementById('login-chip').style.display='none';
   document.getElementById('user-chip').style.display='flex';
   document.getElementById('u-av').textContent=u.init;
@@ -561,6 +562,7 @@ function setUser(u){
 
 function doLogout(){
   me=null;
+  localStorage.removeItem('me');
   document.getElementById('login-chip').style.display='';
   document.getElementById('user-chip').style.display='none';
   document.getElementById('menu-mypage').classList.add('hidden');
@@ -731,7 +733,12 @@ async function loadGoods(){
     grid.appendChild(d);
   });
 }
-window.addEventListener('load',()=>{loadPosts();loadSchedules();loadGoods();loadHomeImg();});
+window.addEventListener('load',()=>{
+  loadPosts();loadSchedules();loadGoods();loadHomeImg();
+  // ログイン状態を復元
+  const saved=localStorage.getItem('me');
+  if(saved){try{setUser(JSON.parse(saved));}catch(e){localStorage.removeItem('me');}}
+});
 
 // ---- COUNTDOWN ----
 const TARGET=new Date('2026-04-19T18:00:00+09:00');
