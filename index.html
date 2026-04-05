@@ -543,13 +543,77 @@ const SUPA_KEY = 'sb_publishable_DL8vjJ-_DsSucvunEJmx_Q_hvEcRcke';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 let me = null;
 
-// ---- STARS ----
+// ---- STARS & CONSTELLATIONS ----
 const cv=document.getElementById('bg'),cx=cv.getContext('2d');let stars=[];
-function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;stars=[];for(let i=0;i<200;i++)stars.push({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.5+0.3,o:Math.random(),s:Math.random()*0.008+0.003});}
+
+// 星座定義（相対座標 0~1 で指定、線のつなぎ方）
+const CONSTELLATIONS=[
+  { // オリオン座風
+    name:'orion',
+    pts:[[.12,.18],[.17,.22],[.14,.28],[.20,.30],[.22,.24],[.18,.32],[.13,.34]],
+    lines:[[0,1],[1,2],[1,4],[4,2],[2,3],[3,5],[5,6]]
+  },
+  { // 北斗七星風
+    name:'dipper',
+    pts:[[.72,.12],[.78,.14],[.84,.13],[.88,.17],[.83,.22],[.77,.24],[.71,.22]],
+    lines:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]]
+  },
+  { // カシオペア風
+    name:'cassiopeia',
+    pts:[[.30,.08],[.38,.13],[.46,.09],[.54,.14],[.62,.10]],
+    lines:[[0,1],[1,2],[2,3],[3,4]]
+  },
+  { // 南十字星風
+    name:'cross',
+    pts:[[.60,.62],[.60,.74],[.54,.68],[.66,.68],[.60,.68]],
+    lines:[[0,4],[4,1],[2,4],[4,3]]
+  }
+];
+
+let constellations=[];
+
+function rsz(){
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  stars=[];
+  for(let i=0;i<180;i++)stars.push({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.4+0.3,o:Math.random(),s:Math.random()*0.008+0.003});
+  // 星座を画面サイズに合わせて配置
+  constellations=CONSTELLATIONS.map(c=>({
+    ...c,
+    pts:c.pts.map(([px,py])=>({x:px*cv.width,y:py*cv.height})),
+    o:0,ds:0.004
+  }));
+}
+
 let ss={x:0,y:0,vx:0,vy:0,a:false};
 function nss(){ss.x=Math.random()*cv.width*.5;ss.y=Math.random()*cv.height*.3;ss.vx=13+Math.random()*5;ss.vy=5+Math.random()*4;ss.a=true;setTimeout(nss,4000+Math.random()*4000);}
 nss();
-function draw(){cx.clearRect(0,0,cv.width,cv.height);stars.forEach(s=>{s.o+=s.s;if(s.o>1||s.o<.1)s.s*=-1;cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);cx.fillStyle=`rgba(180,210,255,${Math.abs(s.o)})`;cx.fill();});if(ss.a){cx.beginPath();cx.strokeStyle='rgba(255,255,255,.75)';cx.lineWidth=1.5;cx.lineCap='round';cx.moveTo(ss.x,ss.y);cx.lineTo(ss.x-ss.vx*3,ss.y-ss.vy*3);cx.stroke();ss.x+=ss.vx;ss.y+=ss.vy;if(ss.x>cv.width||ss.y>cv.height)ss.a=false;}requestAnimationFrame(draw);}
+
+function draw(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  // 通常の星
+  stars.forEach(s=>{s.o+=s.s;if(s.o>1||s.o<.1)s.s*=-1;cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);cx.fillStyle=`rgba(180,210,255,${Math.abs(s.o)})`;cx.fill();});
+  // 星座
+  constellations.forEach(c=>{
+    c.o+=c.ds;if(c.o>0.55||c.o<0.08)c.ds*=-1;
+    const alpha=Math.max(0,c.o);
+    // 線を引く
+    cx.save();cx.strokeStyle=`rgba(55,138,221,${alpha*0.45})`;cx.lineWidth=0.8;cx.setLineDash([3,5]);
+    c.lines.forEach(([a,b])=>{cx.beginPath();cx.moveTo(c.pts[a].x,c.pts[a].y);cx.lineTo(c.pts[b].x,c.pts[b].y);cx.stroke();});
+    cx.restore();
+    // 星座の星（少し大きめ・明るめ）
+    c.pts.forEach(p=>{
+      cx.beginPath();cx.arc(p.x,p.y,1.8,0,Math.PI*2);
+      cx.fillStyle=`rgba(180,220,255,${alpha*0.9})`;cx.fill();
+      // グロー
+      const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,6);
+      g.addColorStop(0,`rgba(100,180,255,${alpha*0.4})`);g.addColorStop(1,'rgba(0,0,0,0)');
+      cx.beginPath();cx.arc(p.x,p.y,6,0,Math.PI*2);cx.fillStyle=g;cx.fill();
+    });
+  });
+  // 流れ星
+  if(ss.a){cx.beginPath();cx.strokeStyle='rgba(255,255,255,.75)';cx.lineWidth=1.5;cx.lineCap='round';cx.moveTo(ss.x,ss.y);cx.lineTo(ss.x-ss.vx*3,ss.y-ss.vy*3);cx.stroke();ss.x+=ss.vx;ss.y+=ss.vy;if(ss.x>cv.width||ss.y>cv.height)ss.a=false;}
+  requestAnimationFrame(draw);
+}
 rsz();draw();window.addEventListener('resize',rsz);
 
 // ---- NAV ----
