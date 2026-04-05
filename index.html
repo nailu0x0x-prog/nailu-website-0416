@@ -65,9 +65,10 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .typewriter{display:inline-block;}
 .prow{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);}
 .prow span:first-child{color:#378add;font-size:11px;}
-.sns-row{display:flex;gap:10px;margin-bottom:14px;}
-.sns-btn{flex:1;padding:11px;background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.3);border-radius:12px;color:#fff;font-size:11px;text-align:center;cursor:pointer;font-family:'Kaisei Decol',serif;letter-spacing:0.1em;transition:.2s;text-decoration:none;display:block;}
-.sns-btn:hover{background:rgba(55,138,221,0.15);border-color:#378add;}
+.sns-row{display:flex;gap:12px;margin-bottom:14px;justify-content:center;}
+.sns-btn{width:56px;height:56px;background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.3);border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:.2s;flex-shrink:0;}
+.sns-btn:hover{background:rgba(55,138,221,0.2);border-color:#378add;box-shadow:0 0 14px rgba(55,138,221,0.4);}
+.sns-btn svg{width:24px;height:24px;fill:currentColor;}
 .tag-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .tag-item{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:10px;padding:11px;text-align:center;cursor:pointer;transition:.2s;}
 .tag-item:hover{background:rgba(55,138,221,0.12);border-color:#378add;}
@@ -334,9 +335,15 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
       <div class="prow"><span>Fan Mark</span><span>🌌✨</span></div>
     </div>
     <div class="sns-row">
-      <a class="sns-btn" href="https://www.youtube.com/@Nailu-ch" target="_blank">YouTube</a>
-      <a class="sns-btn" href="https://twitcasting.tv/g:102965572127691748561" target="_blank">ツイキャス</a>
-      <a class="sns-btn" href="https://twitter.com/Nailu_x_x_" target="_blank">X</a>
+      <a class="sns-btn" href="https://www.youtube.com/@Nailu-ch" target="_blank" title="YouTube">
+        <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+      </a>
+      <a class="sns-btn" href="https://twitcasting.tv/g:102965572127691748561" target="_blank" title="ツイキャス">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </a>
+      <a class="sns-btn" href="https://twitter.com/Nailu_x_x_" target="_blank" title="X">
+        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L2.25 2.25h6.894l4.264 5.636 5.836-5.636zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
     </div>
     <div class="card">
       <h3>TAGS — クリックでコピー</h3>
