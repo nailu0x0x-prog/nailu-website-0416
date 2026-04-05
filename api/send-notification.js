@@ -31,7 +31,9 @@ module.exports = async (req, res) => {
     try {
       await webpush.sendNotification(row.subscription, payload);
       sent++;
+      console.log('送信成功 id:', row.id);
     } catch (e) {
+      console.error('送信失敗 id:', row.id, 'status:', e.statusCode, 'body:', e.body, 'message:', e.message);
       if (e.statusCode === 410 || e.statusCode === 404) expired.push(row.id);
     }
   }
