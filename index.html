@@ -1204,19 +1204,29 @@ async function togglePushNotif(sw) {
 }
 
 async function subscribePush() {
+  const status = document.getElementById('notif-status');
   try {
+    if (!('Notification' in window)) { status.textContent = 'このブラウザは通知未対応'; return false; }
+    if (!('PushManager' in window)) { status.textContent = 'PushManager未対応（iOS16.4以上が必要）'; return false; }
     const permission = await Notification.requestPermission();
+    status.textContent = '許可状態: ' + permission;
     if (permission !== 'granted') return false;
     const reg = await navigator.serviceWorker.ready;
+    status.textContent = 'SW準備OK、購読中...';
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
-    // Supabase に保存
-    await sb.from('push_subscriptions').insert({ subscription: sub.toJSON() });
+    status.textContent = '購読OK、Supabaseに保存中...';
+    const { error } = await sb.from('push_subscriptions').insert({ subscription: sub.toJSON() });
+    if (error) { status.textContent = 'DB保存失敗: ' + error.message; return false; }
     localStorage.setItem('push_sub', JSON.stringify(sub.toJSON()));
     return true;
-  } catch (e) { console.error(e); return false; }
+  } catch (e) {
+    status.textContent = 'エラー: ' + e.message;
+    console.error(e);
+    return false;
+  }
 }
 
 async function unsubscribePush() {
