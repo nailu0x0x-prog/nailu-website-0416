@@ -275,7 +275,10 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
       </div>
       <div class="vname">ないる</div>
       <div class="vsub">OBSERVATION STATION</div>
-      <div class="live-badge"><div class="live-dot"></div><span>次回配信: 4/19 18:00</span></div>
+      <a id="live-badge" class="live-badge" style="text-decoration:none;cursor:default;" target="_blank">
+        <div class="live-dot" id="live-dot"></div>
+        <span id="live-text">次回配信: 4/19 18:00</span>
+      </a>
     </div>
     <div class="card">
       <h3>PROFILE</h3>
@@ -442,6 +445,17 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
         <input class="admin-input" id="a-gurl" placeholder="BOOTHのURL">
         <button class="admin-btn" onclick="addGoods()">追加する</button>
       </div>
+      <div class="card">
+        <h3>配信ステータス</h3>
+        <div class="upload-msg" id="live-save-msg"></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <button id="live-btn-off" class="admin-btn" style="margin-bottom:0;" onclick="setLiveMode('off')">次回配信</button>
+          <button id="live-btn-on" class="admin-btn" style="margin-bottom:0;background:rgba(226,75,74,0.2);border-color:#e24b4a;" onclick="setLiveMode('on')">配信中</button>
+        </div>
+        <input class="admin-input" id="a-live-date" placeholder="次回配信日時 例: 4/26 20:00〜">
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:8px;letter-spacing:0.05em;">※ 配信中の場合はツイキャスURLが自動設定されます</div>
+        <button class="admin-btn" onclick="saveLiveStatus()">保存する</button>
+      </div>
       <button class="admin-btn" style="border-color:rgba(255,255,255,0.2);" onclick="doLogout()">ログアウト</button>
     </div>
   </div>
@@ -556,6 +570,7 @@ function setUser(u){
     document.getElementById('admin-panel').style.display='block';
     document.getElementById('goods-grid').classList.add('admin-mode');
     loadWeekSchedForAdmin();
+    setLiveMode('off');
   }
   // 保存済みアバターを復元
   const savedAv=localStorage.getItem(`avatar_${u.id}`);
@@ -741,7 +756,7 @@ async function deleteGoods(e,btn,id){
   if(id) await sb.from('goods').delete().eq('id',id);
 }
 window.addEventListener('load',()=>{
-  loadPosts();loadSchedules();loadGoods();loadHomeImg();
+  loadPosts();loadSchedules();loadGoods();loadHomeImg();loadLiveStatus();
   // ログイン状態を復元
   const saved=localStorage.getItem('me');
   if(saved){try{setUser(JSON.parse(saved));}catch(e){localStorage.removeItem('me');}}
@@ -892,6 +907,52 @@ async function saveWeekSched(){
   await loadSchedules();
   msg.textContent='保存しました！';
   setTimeout(()=>msg.textContent='', 2000);
+}
+
+// ---- 配信ステータス ----
+let liveMode='off';
+function setLiveMode(mode){
+  liveMode=mode;
+  document.getElementById('live-btn-on').style.opacity=mode==='on'?'1':'0.4';
+  document.getElementById('live-btn-off').style.opacity=mode==='off'?'1':'0.4';
+  document.getElementById('a-live-date').style.display=mode==='on'?'none':'block';
+}
+async function saveLiveStatus(){
+  const msg=document.getElementById('live-save-msg');
+  const dateText=document.getElementById('a-live-date').value.trim();
+  const isLive=liveMode==='on';
+  const text=isLive?'配信中！':`次回配信: ${dateText}`;
+  const url=isLive?'https://twitcasting.tv/g:102965572127691748561':'';
+  // localStorage に保存
+  localStorage.setItem('live_status',JSON.stringify({isLive,text,url}));
+  applyLiveBadge({isLive,text,url});
+  // Supabase の settings テーブルがあれば保存（なくてもOK）
+  await sb.from('settings').upsert({key:'live',value:JSON.stringify({isLive,text,url})}).then(()=>{}).catch(()=>{});
+  msg.textContent='保存しました！';
+  setTimeout(()=>msg.textContent='',2000);
+}
+function applyLiveBadge({isLive,text,url}){
+  const badge=document.getElementById('live-badge');
+  const dot=document.getElementById('live-dot');
+  const span=document.getElementById('live-text');
+  span.textContent=text;
+  if(isLive){
+    badge.href=url;
+    badge.style.cursor='pointer';
+    badge.style.background='rgba(226,75,74,0.25)';
+    badge.style.borderColor='#e24b4a';
+    dot.style.background='#e24b4a';
+  } else {
+    badge.removeAttribute('href');
+    badge.style.cursor='default';
+    badge.style.background='rgba(24,95,165,0.25)';
+    badge.style.borderColor='#185fa5';
+    dot.style.background='#378add';
+  }
+}
+function loadLiveStatus(){
+  const saved=localStorage.getItem('live_status');
+  if(saved){try{applyLiveBadge(JSON.parse(saved));}catch(e){}}
 }
 
 // ---- PWA ----
