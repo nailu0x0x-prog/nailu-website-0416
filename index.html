@@ -57,6 +57,12 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .live-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(24,95,165,0.25);border:1px solid #185fa5;border-radius:20px;padding:5px 16px;font-size:11px;color:#fff;margin-top:14px;letter-spacing:0.1em;}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#378add;animation:blink 1.4s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+/* ---- アニメーション ---- */
+@keyframes slideUp{from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:translateY(0);}}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.slide-up{opacity:0;animation:slideUp .55s cubic-bezier(.22,.68,0,1.2) forwards;}
+.avatar-ring{animation:float 3.8s ease-in-out infinite;}
+.typewriter{display:inline-block;}
 .prow{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);}
 .prow span:first-child{color:#378add;font-size:11px;}
 .sns-row{display:flex;gap:10px;margin-bottom:14px;}
@@ -295,8 +301,8 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
         <img id="home-av-img" style="display:none;width:100%;height:100%;">
         <span id="home-av-emoji">🌌</span>
       </div>
-      <div class="vname">ないる</div>
-      <div class="vsub">OBSERVATION STATION</div>
+      <div class="vname"><span id="vname-tw" class="typewriter"></span></div>
+      <div class="vsub"><span id="vsub-tw" class="typewriter"></span></div>
       <a id="live-badge" class="live-badge" style="text-decoration:none;cursor:default;" target="_blank">
         <div class="live-dot" id="live-dot"></div>
         <span id="live-text">次回配信: 4/19 18:00</span>
@@ -549,9 +555,26 @@ rsz();draw();window.addEventListener('resize',rsz);
 // ---- NAV ----
 function toggleSide(){document.getElementById('side').classList.toggle('on');document.getElementById('sov').classList.toggle('on');}
 function closeSide(){document.getElementById('side').classList.remove('on');document.getElementById('sov').classList.remove('on');}
+function typewrite(el,text,speed=60){
+  el.textContent='';let i=0;
+  const t=setInterval(()=>{el.textContent+=text[i++];if(i>=text.length)clearInterval(t);},speed);
+}
 function goPage(id){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  document.getElementById('pg-'+id).classList.add('on');
+  const pg=document.getElementById('pg-'+id);
+  pg.classList.add('on');
+  // カードをスライドアニメーション
+  pg.querySelectorAll('.card,.news-card,.goods-card,.sched-item,.member-card,.hero').forEach((el,i)=>{
+    el.classList.remove('slide-up');
+    void el.offsetWidth;
+    el.style.animationDelay=`${i*0.07}s`;
+    el.classList.add('slide-up');
+  });
+  // ホームのタイプライター
+  if(id==='home'){
+    setTimeout(()=>typewrite(document.getElementById('vname-tw'),'ないる',80),100);
+    setTimeout(()=>typewrite(document.getElementById('vsub-tw'),'OBSERVATION STATION',40),500);
+  }
   document.querySelectorAll('.mitem').forEach(m=>m.classList.toggle('act',m.dataset.pg===id));
   if(id==='mypage') renderMypage();
   closeSide();closeUMenu();
@@ -867,6 +890,13 @@ window.addEventListener('load',()=>{
   // ログイン状態を復元
   const saved=localStorage.getItem('me');
   if(saved){try{setUser(JSON.parse(saved));}catch(e){localStorage.removeItem('me');}}
+  // 初回ホーム表示アニメーション
+  document.querySelectorAll('#pg-home .card,#pg-home .hero').forEach((el,i)=>{
+    el.style.animationDelay=`${i*0.07}s`;
+    el.classList.add('slide-up');
+  });
+  setTimeout(()=>typewrite(document.getElementById('vname-tw'),'ないる',80),200);
+  setTimeout(()=>typewrite(document.getElementById('vsub-tw'),'OBSERVATION STATION',40),600);
 });
 
 // ---- COUNTDOWN ----
