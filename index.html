@@ -580,7 +580,7 @@ function rsz(){
   constellations=CONSTELLATIONS.map(c=>({
     ...c,
     pts:c.pts.map(([px,py])=>({x:px*cv.width,y:py*cv.height})),
-    o:0,ds:0.004
+    o:0.15+Math.random()*0.25,ds:0.004
   }));
 }
 
