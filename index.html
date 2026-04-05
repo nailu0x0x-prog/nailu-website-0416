@@ -53,7 +53,7 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .card>*{position:relative;z-index:1;}
 @keyframes aurora{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
 /* カード装飾 */
-.card-deco{position:absolute;pointer-events:none;z-index:2;opacity:0.18;}
+.card-deco{position:absolute;pointer-events:none;z-index:2;opacity:0.32;}
 .card-deco svg{display:block;}
 @keyframes deco-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
 .card h3{font-size:10px;color:#fff;letter-spacing:0.3em;margin-bottom:12px;border-bottom:1px solid rgba(55,138,221,0.2);padding-bottom:8px;text-shadow:0 0 8px rgba(0,0,255,0.9);}
@@ -1001,8 +1001,8 @@ async function deleteGoods(e,btn,id){
   if(id) await sb.from('goods').delete().eq('id',id);
 }
 // ---- カード装飾（三日月・キラキラ）----
-const MOON_SVG=`<svg viewBox="0 0 20 20" fill="white" fill-rule="evenodd" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9"/><circle cx="14" cy="8" r="7"/></svg>`;
-const SPARKLE_SVG=`<svg viewBox="0 0 20 20" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M10 0 L11.8 8.2 L20 10 L11.8 11.8 L10 20 L8.2 11.8 L0 10 L8.2 8.2 Z"/></svg>`;
+const MOON_SVG=`<svg viewBox="0 0 20 20" fill="white" fill-rule="evenodd" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9"/><circle cx="12" cy="10" r="6"/></svg>`;
+const SPARKLE_SVG=`<svg viewBox="0 0 20 20" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M10 0 L11.5 8.5 L20 10 L11.5 11.5 L10 20 L8.5 11.5 L0 10 L8.5 8.5 Z"/></svg>`;
 const CORNERS=[
   {top:'10px',left:'10px'},{top:'10px',right:'10px'},
   {bottom:'14px',left:'10px'},{bottom:'14px',right:'10px'}
@@ -1017,7 +1017,7 @@ function addCardDecos(){
       const el=document.createElement('div');
       el.className='card-deco';
       el.innerHTML=isMoon?MOON_SVG:SPARKLE_SVG;
-      const size=isMoon?(14+Math.random()*6):(10+Math.random()*6);
+      const size=isMoon?(24+Math.random()*10):(14+Math.random()*8);
       el.style.width=size+'px'; el.style.height=size+'px';
       el.style.animationDelay=Math.random()*4+'s';
       el.style.animationDuration=(4+Math.random()*3)+'s';
