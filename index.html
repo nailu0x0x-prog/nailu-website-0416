@@ -721,40 +721,39 @@ function makeNewsCard(n){
   d.innerHTML=`<button class="del-btn" onclick="deleteNews(this,'${id}')">✕</button><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${n.time||'たった今'}</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
   return d;
 }
-function postNews(){
+async function postNews(){
   const type=document.getElementById('a-ntype').value;
   const title=document.getElementById('a-ntitle').value;
   const body=document.getElementById('a-nbody').value;
   if(!title||!body)return;
-  const news=loadNewsData();
   const id=Date.now().toString();
-  const item={id,type,title,body,time:'たった今'};
-  news.unshift(item);
-  saveNewsData(news);
+  const time=new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const{data}=await sb.from('news').insert({id,type,title,body,created_at:new Date().toISOString()}).select().single();
+  const item=data||{id,type,title,body,time};
   document.getElementById('news-list').prepend(makeNewsCard(item));
-  renderHomeNews(news);
+  renderHomeNews([item]);
   document.getElementById('a-ntitle').value='';document.getElementById('a-nbody').value='';
 }
-function loadNewsData(){try{return JSON.parse(localStorage.getItem('news_data')||'[]');}catch(e){return[];}}
-function saveNewsData(arr){localStorage.setItem('news_data',JSON.stringify(arr));}
-function deleteNews(btn,id){
+async function deleteNews(btn,id){
   if(!confirm('このお知らせを削除する？'))return;
   btn.closest('.news-card').remove();
-  const news=loadNewsData().filter(n=>n.id!==id);
-  saveNewsData(news);
-  renderHomeNews(news);
+  await sb.from('news').delete().eq('id',id);
+  // ホームの最新も更新
+  const{data}=await sb.from('news').select('*').order('created_at',{ascending:false}).limit(1);
+  renderHomeNews(data||[]);
 }
-function renderAllNews(){
-  const news=loadNewsData();
+async function renderAllNews(){
+  const{data}=await sb.from('news').select('*').order('created_at',{ascending:false});
   const list=document.getElementById('news-list');list.innerHTML='';
-  news.forEach(n=>list.appendChild(makeNewsCard(n)));
-  renderHomeNews(news);
+  if(data) data.forEach(n=>list.appendChild(makeNewsCard(n)));
+  renderHomeNews(data||[]);
 }
 function renderHomeNews(news){
   if(!news||news.length===0){document.getElementById('home-news-card').style.display='none';return;}
   const n=news[0];
+  const time=n.created_at?new Date(n.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):n.time||'';
   document.getElementById('home-news-card').style.display='block';
-  document.getElementById('home-news-item').innerHTML=`<div class="news-card"><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${n.time||''}</div></div>`;
+  document.getElementById('home-news-item').innerHTML=`<div class="news-card"><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${time}</div></div>`;
 }
 async function addSched(){
   const v=['a-sday','a-sdate','a-stitle','a-stime','a-stag'].map(i=>document.getElementById(i).value);
@@ -904,7 +903,7 @@ async function saveHomeImg(){
   msg.textContent='アップロード中...';
   let url=await uploadToStorage('home/avatar.jpg', input.files[0]);
   if(!url) url=await fileToBase64(input.files[0]);
-  localStorage.setItem('home_img', url);
+  await sbSet('home_img', url);
   applyHomeImg(url);
   msg.textContent='保存しました！';
   setTimeout(()=>msg.textContent='', 2000);
@@ -915,8 +914,8 @@ function applyHomeImg(url){
   if(img){img.src=url;img.style.display='block';}
   if(emoji) emoji.style.display='none';
 }
-function loadHomeImg(){
-  const saved=localStorage.getItem('home_img');
+async function loadHomeImg(){
+  const saved=await sbGet('home_img');
   if(saved) applyHomeImg(saved);
 }
 
@@ -983,16 +982,26 @@ async function saveWeekSched(){
   setTimeout(()=>msg.textContent='', 2000);
 }
 
+// ---- Supabase settings ヘルパー ----
+async function sbGet(key){
+  const{data}=await sb.from('settings').select('value').eq('key',key).maybeSingle();
+  if(!data)return null;
+  try{return JSON.parse(data.value);}catch(e){return data.value;}
+}
+async function sbSet(key,value){
+  await sb.from('settings').upsert({key,value:JSON.stringify(value)});
+}
+
 // ---- 自己紹介 ----
-function saveIntro(){
+async function saveIntro(){
   const txt=document.getElementById('a-intro').value;
-  localStorage.setItem('home_intro',txt);
+  await sbSet('home_intro',txt);
   document.getElementById('home-intro-text').textContent=txt;
   const msg=document.getElementById('intro-save-msg');
   msg.textContent='保存しました！';setTimeout(()=>msg.textContent='',2000);
 }
-function loadIntro(){
-  const saved=localStorage.getItem('home_intro');
+async function loadIntro(){
+  const saved=await sbGet('home_intro');
   if(saved){document.getElementById('home-intro-text').textContent=saved;}
   const el=document.getElementById('a-intro');
   if(el) el.value=document.getElementById('home-intro-text').textContent;
@@ -1003,13 +1012,13 @@ function ytIdFromUrl(url){
   const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([A-Za-z0-9_-]{11})/);
   return m?m[1]:null;
 }
-function saveYtUrl(){
+async function saveYtUrl(){
   const url=document.getElementById('a-yturl').value.trim();
   const msg=document.getElementById('yt-save-msg');
   if(!url){msg.textContent='URLを入力してください';return;}
   const id=ytIdFromUrl(url);
   if(!id){msg.textContent='YouTubeのURLが正しくないよ';return;}
-  localStorage.setItem('yt_video_id',id);
+  await sbSet('yt_video_id',id);
   applyYtEmbed(id);
   msg.textContent='保存しました！';setTimeout(()=>msg.textContent='',2000);
 }
@@ -1019,8 +1028,8 @@ function applyYtEmbed(id){
   card.style.display='block';
   wrap.innerHTML=`<div class="yt-wrap"><iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe></div>`;
 }
-function loadYtEmbed(){
-  const id=localStorage.getItem('yt_video_id');
+async function loadYtEmbed(){
+  const id=await sbGet('yt_video_id');
   if(id) applyYtEmbed(id);
 }
 
@@ -1038,11 +1047,8 @@ async function saveLiveStatus(){
   const isLive=liveMode==='on';
   const text=isLive?'配信中！':`次回配信: ${dateText}`;
   const url=isLive?'https://twitcasting.tv/g:102965572127691748561':'';
-  // localStorage に保存
-  localStorage.setItem('live_status',JSON.stringify({isLive,text,url}));
+  await sbSet('live_status',{isLive,text,url});
   applyLiveBadge({isLive,text,url});
-  // Supabase の settings テーブルがあれば保存（なくてもOK）
-  await sb.from('settings').upsert({key:'live',value:JSON.stringify({isLive,text,url})}).then(()=>{}).catch(()=>{});
   msg.textContent='保存しました！';
   setTimeout(()=>msg.textContent='',2000);
 }
@@ -1065,9 +1071,9 @@ function applyLiveBadge({isLive,text,url}){
     dot.style.background='#378add';
   }
 }
-function loadLiveStatus(){
-  const saved=localStorage.getItem('live_status');
-  if(saved){try{applyLiveBadge(JSON.parse(saved));}catch(e){}}
+async function loadLiveStatus(){
+  const saved=await sbGet('live_status');
+  if(saved) applyLiveBadge(saved);
 }
 
 // ---- PWA ----
