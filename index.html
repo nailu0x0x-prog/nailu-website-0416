@@ -580,7 +580,7 @@ function rsz(){
   constellations=CONSTELLATIONS.map(c=>({
     ...c,
     pts:c.pts.map(([px,py])=>({x:px*cv.width,y:py*cv.height})),
-    o:0.15+Math.random()*0.25,ds:0.004
+    o:0.45+Math.random()*0.3,ds:0.004
   }));
 }
 
@@ -594,20 +594,20 @@ function draw(){
   stars.forEach(s=>{s.o+=s.s;if(s.o>1||s.o<.1)s.s*=-1;cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);cx.fillStyle=`rgba(180,210,255,${Math.abs(s.o)})`;cx.fill();});
   // 星座
   constellations.forEach(c=>{
-    c.o+=c.ds;if(c.o>0.55||c.o<0.08)c.ds*=-1;
+    c.o+=c.ds;if(c.o>0.85||c.o<0.3)c.ds*=-1;
     const alpha=Math.max(0,c.o);
     // 線を引く
-    cx.save();cx.strokeStyle=`rgba(55,138,221,${alpha*0.45})`;cx.lineWidth=0.8;cx.setLineDash([3,5]);
+    cx.save();cx.strokeStyle=`rgba(55,138,221,${alpha*0.85})`;cx.lineWidth=1.2;cx.setLineDash([3,5]);
     c.lines.forEach(([a,b])=>{cx.beginPath();cx.moveTo(c.pts[a].x,c.pts[a].y);cx.lineTo(c.pts[b].x,c.pts[b].y);cx.stroke();});
     cx.restore();
     // 星座の星（少し大きめ・明るめ）
     c.pts.forEach(p=>{
-      cx.beginPath();cx.arc(p.x,p.y,1.8,0,Math.PI*2);
-      cx.fillStyle=`rgba(180,220,255,${alpha*0.9})`;cx.fill();
+      cx.beginPath();cx.arc(p.x,p.y,2.5,0,Math.PI*2);
+      cx.fillStyle=`rgba(200,230,255,${alpha})`;cx.fill();
       // グロー
-      const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,6);
-      g.addColorStop(0,`rgba(100,180,255,${alpha*0.4})`);g.addColorStop(1,'rgba(0,0,0,0)');
-      cx.beginPath();cx.arc(p.x,p.y,6,0,Math.PI*2);cx.fillStyle=g;cx.fill();
+      const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,10);
+      g.addColorStop(0,`rgba(100,180,255,${alpha*0.7})`);g.addColorStop(1,'rgba(0,0,0,0)');
+      cx.beginPath();cx.arc(p.x,p.y,10,0,Math.PI*2);cx.fillStyle=g;cx.fill();
     });
   });
   // 流れ星
