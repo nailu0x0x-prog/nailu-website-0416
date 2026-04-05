@@ -195,6 +195,18 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .sw-date{font-size:12px;font-weight:700;}
 .sw-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .sw-full{grid-column:1/-1;}
+/* トリミングモーダル */
+.crop-modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,3,12,0.96);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.crop-modal-bg.on{display:flex;}
+.crop-area{position:relative;width:280px;height:280px;overflow:hidden;border-radius:50%;border:2px solid #378add;box-shadow:0 0 30px rgba(55,138,221,0.4);}
+.crop-img{position:absolute;cursor:move;user-select:none;touch-action:none;}
+.crop-hint{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.1em;}
+.crop-btns{display:flex;gap:10px;}
+.crop-btn{padding:10px 24px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;cursor:pointer;font-family:'Kaisei Decol',serif;}
+.crop-cancel{padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:'Kaisei Decol',serif;}
+.crop-scale{display:flex;align-items:center;gap:10px;width:280px;}
+.crop-scale input{flex:1;accent-color:#378add;}
+.crop-scale span{font-size:10px;color:#378add;}
 /* 削除ボタン共通 */
 .del-btn{display:none;position:absolute;top:8px;right:8px;background:rgba(226,75,74,0.85);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:13px;cursor:pointer;align-items:center;justify-content:center;line-height:1;flex-shrink:0;}
 .admin-mode .del-btn{display:flex;}
@@ -490,6 +502,23 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
     </div>
   </div>
 
+  <!-- CROP MODAL -->
+  <div class="crop-modal-bg" id="crop-modal">
+    <div class="crop-hint">ドラッグで位置を調整</div>
+    <div class="crop-area" id="crop-area">
+      <img id="crop-img" class="crop-img">
+    </div>
+    <div class="crop-scale">
+      <span>小</span>
+      <input type="range" id="crop-scale" min="0.5" max="3" step="0.01" value="1" oninput="scaleCrop(this.value)">
+      <span>大</span>
+    </div>
+    <div class="crop-btns">
+      <button class="crop-cancel" onclick="closeCropModal()">キャンセル</button>
+      <button class="crop-btn" onclick="confirmCrop()">この形で保存</button>
+    </div>
+  </div>
+
   <div class="install-banner" id="install-banner">
     <div class="ib-text">ホーム画面に追加してアプリとして使えるよ！</div>
     <button class="ib-btn" id="ib-btn">追加する</button>
@@ -605,9 +634,8 @@ function setUser(u){
     setLiveMode('off');
     document.getElementById('a-intro').value=document.getElementById('home-intro-text').textContent;
   }
-  // 保存済みアバターを復元
-  const savedAv=localStorage.getItem(`avatar_${u.id}`);
-  if(savedAv) applyAvatar(savedAv);
+  // アバターを読み込む
+  loadAvatar();
 }
 
 function doLogout(){
@@ -867,24 +895,91 @@ function triggerAvatarUpload(){
   if(!me) return;
   document.getElementById('avatar-file').click();
 }
-async function uploadAvatar(input){
+function uploadAvatar(input){
   if(!input.files[0]||!me) return;
-  const file=input.files[0];
-  let url=await uploadToStorage(`avatars/user_${me.id}.jpg`, file);
-  if(!url) url=await fileToBase64(file);
-  localStorage.setItem(`avatar_${me.id}`, url);
+  fileToBase64(input.files[0]).then(base64=>openCropModal(base64));
+  input.value='';
+}
+
+// ---- トリミング ----
+let cropX=0,cropY=0,cropScale=1,cropDragging=false,cropStartX=0,cropStartY=0;
+function openCropModal(src){
+  const modal=document.getElementById('crop-modal');
+  const img=document.getElementById('crop-img');
+  const area=document.getElementById('crop-area');
+  cropScale=1;cropX=0;cropY=0;
+  document.getElementById('crop-scale').value=1;
+  img.src=src;
+  img.onload=()=>{
+    const s=280/Math.min(img.naturalWidth,img.naturalHeight);
+    cropScale=s;
+    document.getElementById('crop-scale').value=Math.min(s,3);
+    cropX=(280-img.naturalWidth*cropScale)/2;
+    cropY=(280-img.naturalHeight*cropScale)/2;
+    applyCropTransform();
+  };
+  modal.classList.add('on');
+  // ドラッグ（マウス）
+  const imgEl=document.getElementById('crop-img');
+  imgEl.onmousedown=e=>{cropDragging=true;cropStartX=e.clientX-cropX;cropStartY=e.clientY-cropY;e.preventDefault();};
+  window.onmousemove=e=>{if(!cropDragging)return;cropX=e.clientX-cropStartX;cropY=e.clientY-cropStartY;applyCropTransform();};
+  window.onmouseup=()=>cropDragging=false;
+  // タッチ
+  imgEl.ontouchstart=e=>{const t=e.touches[0];cropDragging=true;cropStartX=t.clientX-cropX;cropStartY=t.clientY-cropY;};
+  window.ontouchmove=e=>{if(!cropDragging)return;const t=e.touches[0];cropX=t.clientX-cropStartX;cropY=t.clientY-cropStartY;applyCropTransform();};
+  window.ontouchend=()=>cropDragging=false;
+}
+function scaleCrop(v){
+  cropScale=parseFloat(v);
+  applyCropTransform();
+}
+function applyCropTransform(){
+  const img=document.getElementById('crop-img');
+  img.style.width=img.naturalWidth*cropScale+'px';
+  img.style.height=img.naturalHeight*cropScale+'px';
+  img.style.left=cropX+'px';
+  img.style.top=cropY+'px';
+}
+function closeCropModal(){
+  document.getElementById('crop-modal').classList.remove('on');
+}
+async function confirmCrop(){
+  const img=document.getElementById('crop-img');
+  const canvas=document.createElement('canvas');
+  canvas.width=280;canvas.height=280;
+  const ctx=canvas.getContext('2d');
+  ctx.beginPath();ctx.arc(140,140,140,0,Math.PI*2);ctx.clip();
+  ctx.drawImage(img,cropX,cropY,img.naturalWidth*cropScale,img.naturalHeight*cropScale);
+  const base64=canvas.toDataURL('image/jpeg',0.85);
+  closeCropModal();
+  // Storage にアップロード、失敗したらbase64をそのままDB保存
+  const blob=await(await fetch(base64)).blob();
+  let url=await uploadToStorage(`avatars/user_${me.id}.jpg`,new File([blob],'avatar.jpg',{type:'image/jpeg'}));
+  if(!url) url=base64;
+  await sb.from('users').update({avatar_url:url}).eq('id',me.id).catch(()=>{});
+  me.avatar_url=url;
+  localStorage.setItem('me',JSON.stringify(me));
   applyAvatar(url);
-  // usersテーブルにavatar_urlカラムがあれば保存
-  await sb.from('users').update({avatar_url:url}).eq('id',me.id).then(()=>{}).catch(()=>{});
 }
 function applyAvatar(url){
   const img=document.getElementById('mc-av-img');
   const init=document.getElementById('mc-av-init');
   if(img){img.src=url;img.style.display='block';}
   if(init) init.style.display='none';
-  // ヘッダーの小さいアバターにも適用
   const uav=document.getElementById('u-av');
   if(uav) uav.innerHTML=`<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+}
+async function loadAvatar(){
+  if(!me) return;
+  // まずlocalStorageのmeにavatar_urlがあれば使う
+  if(me.avatar_url){applyAvatar(me.avatar_url);return;}
+  // なければSupabaseから取得
+  const{data}=await sb.from('users').select('avatar_url').eq('id',me.id).maybeSingle();
+  if(data?.avatar_url){
+    me.avatar_url=data.avatar_url;
+    localStorage.setItem('me',JSON.stringify(me));
+    applyAvatar(data.avatar_url);
+  }
 }
 
 // ---- ホーム画像 ----
