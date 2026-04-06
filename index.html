@@ -193,7 +193,20 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .bday-cd-label{font-size:9px;color:#378add;letter-spacing:0.2em;margin-bottom:8px;}
 .bday-cd-num{font-size:28px;font-weight:700;font-family:monospace;text-shadow:0 0 20px rgba(55,138,221,0.6);}
 .bday-cd-sub{font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+/* スタンプアニメーション */
+.stamp-overlay{position:fixed;inset:0;z-index:700;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.stamp-circle{width:130px;height:130px;border-radius:50%;border:4px solid rgba(0,0,255,0.9);background:rgba(0,0,30,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;opacity:0;transform:scale(2) rotate(-15deg);}
+.stamp-circle.in{animation:stamp-press .45s cubic-bezier(.17,.67,.3,1.4) forwards;}
+.stamp-circle.out{animation:stamp-fade .4s ease-in forwards;}
+.stamp-day{font-size:11px;color:rgba(0,0,255,0.9);letter-spacing:0.2em;}
+.stamp-num{font-size:44px;font-weight:700;color:#fff;text-shadow:0 0 16px rgba(0,0,255,1);line-height:1;}
+.stamp-sub{font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:0.1em;}
+.pt-popup{font-size:22px;font-weight:700;color:#fff;text-shadow:0 0 12px rgba(0,0,255,1);opacity:0;letter-spacing:0.1em;}
+.pt-popup.in{animation:pt-fly 1.8s ease-out forwards;}
+@keyframes stamp-press{0%{opacity:0;transform:scale(2) rotate(-15deg);}60%{opacity:1;transform:scale(0.92) rotate(-8deg);}80%{transform:scale(1.05) rotate(-6deg);}100%{opacity:1;transform:scale(1) rotate(-7deg);}}
+@keyframes stamp-fade{0%{opacity:1;}100%{opacity:0;transform:scale(0.8);}}
+@keyframes pt-fly{0%{opacity:0;transform:translateY(20px);}20%{opacity:1;}80%{opacity:1;transform:translateY(-30px);}100%{opacity:0;transform:translateY(-50px);}}
 .stat-box{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:12px;padding:14px;text-align:center;}
 .stat-num{font-size:24px;font-weight:700;color:#378add;font-family:monospace;}
 .stat-label{font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:0.1em;margin-top:4px;}
@@ -468,6 +481,7 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
       <div class="stats-grid">
         <div class="stat-box"><div class="stat-num" id="stat-posts">0</div><div class="stat-label">POSTS</div></div>
         <div class="stat-box"><div class="stat-num" id="stat-days">0</div><div class="stat-label">DAYS</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-points">0</div><div class="stat-label">POINTS</div></div>
       </div>
     </div>
   </div>
@@ -575,6 +589,15 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
   </div>
 
   <footer class="footer">© 2026 NaiLu-site</footer>
+  <!-- スタンプオーバーレイ -->
+  <div class="stamp-overlay" id="stamp-overlay" style="display:none;">
+    <div class="stamp-circle" id="stamp-circle">
+      <div class="stamp-day">DAY</div>
+      <div class="stamp-num" id="stamp-num">1</div>
+      <div class="stamp-sub">LOGIN</div>
+    </div>
+    <div class="pt-popup" id="pt-popup">+1 pt ゲット！</div>
+  </div>
 
   <div class="install-banner" id="install-banner">
     <div class="ib-text">ホーム画面に追加してアプリとして使えるよ！</div>
@@ -780,6 +803,8 @@ function setUser(u){
   }
   // アバターを読み込む
   loadAvatar();
+  // ログインストリーク確認
+  checkLoginStreak();
 }
 
 function doLogout(){
@@ -801,15 +826,69 @@ function doLogout(){
   closeUMenu();goPage('home');
 }
 
+// ---- ログインストリーク & ポイント ----
+async function checkLoginStreak(){
+  if(!me||me.role==='admin') return;
+  const today=new Date().toISOString().split('T')[0];
+  const {data}=await sb.from('users').select('points,streak_day,last_login_date').eq('id',me.id).maybeSingle();
+  if(!data) return;
+  if(data.last_login_date===today){
+    me.points=data.points||0; me.streak_day=data.streak_day||0;
+    try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+    return;
+  }
+  const yest=new Date(); yest.setDate(yest.getDate()-1);
+  const yesterdayStr=yest.toISOString().split('T')[0];
+  let streak=data.streak_day||0;
+  if(data.last_login_date===yesterdayStr){
+    streak=streak>=7?1:streak+1;
+  } else {
+    streak=1;
+  }
+  const earned=streak;
+  const points=(data.points||0)+earned;
+  try{await sb.from('users').update({points,streak_day:streak,last_login_date:today}).eq('id',me.id);}catch(e){}
+  me.points=points; me.streak_day=streak;
+  try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+  showStampAnimation(streak,earned);
+}
+function showStampAnimation(day,pts){
+  const ov=document.getElementById('stamp-overlay');
+  const circle=document.getElementById('stamp-circle');
+  const popup=document.getElementById('pt-popup');
+  document.getElementById('stamp-num').textContent=day;
+  popup.textContent=`+${pts} pt ゲット！`;
+  ov.style.display='flex';
+  circle.className='stamp-circle';
+  popup.className='pt-popup';
+  void circle.offsetWidth;
+  circle.classList.add('in');
+  popup.classList.add('in');
+  setTimeout(()=>{
+    circle.classList.remove('in'); circle.classList.add('out');
+  },2000);
+  setTimeout(()=>{ ov.style.display='none'; },2500);
+  ov.addEventListener('click',()=>{ ov.style.display='none'; },{once:true});
+}
+async function addPostPoint(){
+  if(!me||me.role==='admin') return;
+  const pts=(me.points||0)+1;
+  me.points=pts;
+  try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+  try{await sb.from('users').update({points:pts}).eq('id',me.id);}catch(e){}
+}
 // ---- MYPAGE ----
 async function renderMypage(){
   if(!me) return;
-  // ランク計算
+  // ランク計算（ポイント制）
   const {count}=await sb.from('posts').select('*',{count:'exact',head:true}).eq('user_name',me.name);
   const posts=count||0;
-  const ranks=[{min:0,label:'見習い観測者',cls:'rank-0'},{min:5,label:'観測者',cls:'rank-0'},{min:20,label:'熟練観測者',cls:'rank-1'},{min:50,label:'上級観測者',cls:'rank-2'},{min:100,label:'伝説の観測者',cls:'rank-3'}];
+  const {data:udata}=await sb.from('users').select('points,streak_day').eq('id',me.id).maybeSingle();
+  const totalPoints=udata?.points||me.points||0;
+  if(udata){me.points=udata.points||0;me.streak_day=udata.streak_day||0;try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}}
+  const ranks=[{min:0,label:'見習い観測者',cls:'rank-0'},{min:10,label:'観測者',cls:'rank-0'},{min:30,label:'熟練観測者',cls:'rank-1'},{min:100,label:'上級観測者',cls:'rank-2'},{min:500,label:'伝説の観測者',cls:'rank-3'}];
   let rank=ranks[0];
-  for(const r of ranks){if(posts>=r.min)rank=r;}
+  for(const r of ranks){if(totalPoints>=r.min)rank=r;}
   // 登録日数
   const regDate=me.regDate?new Date(me.regDate):new Date();
   const days=Math.floor((new Date()-regDate)/86400000);
@@ -836,6 +915,7 @@ async function renderMypage(){
   document.getElementById('mc-rank-label').innerHTML=`<span class="rank-badge ${rank.cls}">${rank.label}</span>`;
   document.getElementById('stat-posts').textContent=posts;
   document.getElementById('stat-days').textContent=days;
+  document.getElementById('stat-points').textContent=totalPoints;
   document.getElementById('bday-cd-num').textContent=bdayText;
   document.getElementById('bday-cd-sub').textContent=bdayToday?'今日が誕生日！🎂':'次の誕生日まで';
   document.getElementById('bday-banner').style.display=bdayToday?'block':'none';
@@ -854,6 +934,7 @@ async function postComment(){
   document.getElementById('comment-list').prepend(d);
   document.getElementById('c-input').value='';
   await sb.from('posts').insert({user_name:me.name,body:txt});
+  addPostPoint();
 }
 
 function makeCommentCard(p,col){
