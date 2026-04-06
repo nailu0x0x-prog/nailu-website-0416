@@ -843,18 +843,21 @@ function doLogout(){
 }
 
 // ---- ログインストリーク & ポイント ----
+function localDate(d=new Date()){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 async function checkLoginStreak(){
-  if(!me||me.role==='admin') return;
-  const today=new Date().toISOString().split('T')[0];
-  const {data}=await sb.from('users').select('points,streak_day,last_login_date').eq('id',me.id).maybeSingle();
-  if(!data) return;
+  if(!me||me.role==='admin'||!me.id) return;
+  const today=localDate();
+  const {data,error}=await sb.from('users').select('points,streak_day,last_login_date').eq('id',me.id).maybeSingle();
+  if(error||!data) return;
   if(data.last_login_date===today){
     me.points=data.points||0; me.streak_day=data.streak_day||0;
     try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
     return;
   }
   const yest=new Date(); yest.setDate(yest.getDate()-1);
-  const yesterdayStr=yest.toISOString().split('T')[0];
+  const yesterdayStr=localDate(yest);
   let streak=data.streak_day||0;
   if(data.last_login_date===yesterdayStr){
     streak=streak>=7?1:streak+1;
@@ -863,7 +866,8 @@ async function checkLoginStreak(){
   }
   const earned=streak;
   const points=(data.points||0)+earned;
-  try{await sb.from('users').update({points,streak_day:streak,last_login_date:today}).eq('id',me.id);}catch(e){}
+  const {error:upErr}=await sb.from('users').update({points,streak_day:streak,last_login_date:today}).eq('id',me.id);
+  if(upErr){console.error('streak update error:',upErr);return;}
   me.points=points; me.streak_day=streak;
   try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
   showStampAnimation(streak,earned);
