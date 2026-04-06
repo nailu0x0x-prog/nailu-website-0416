@@ -127,9 +127,17 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .c-name{font-size:11px;font-weight:700;}
 .c-time{font-size:9px;color:rgba(255,255,255,0.3);margin-left:auto;}
 .c-body{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;}
+.c-tag{display:inline-block;font-size:9px;color:#378add;margin-bottom:6px;letter-spacing:0.05em;}
+.c-img{width:100%;border-radius:8px;margin-top:8px;object-fit:cover;max-height:260px;display:block;}
 .comment-form{background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:14px;padding:14px;margin-bottom:14px;}
 .comment-form textarea{width:100%;background:rgba(0,5,20,0.8);border:1px solid rgba(55,138,221,0.3);border-radius:8px;padding:10px;color:#fff;font-size:12px;font-family:'Kaisei Decol',serif;resize:none;outline:none;margin-bottom:8px;}
 .comment-form textarea:focus{border-color:#378add;}
+.tag-select{display:flex;gap:8px;margin-bottom:10px;}
+.tag-sel-btn{flex:1;padding:7px;background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.3);border-radius:10px;color:rgba(255,255,255,0.5);font-size:10px;cursor:pointer;font-family:'Kaisei Decol',serif;letter-spacing:0.05em;transition:.2s;text-align:center;}
+.tag-sel-btn.on{background:rgba(0,0,255,0.15);border-color:#0000ff;color:#fff;text-shadow:0 0 8px rgba(0,0,255,0.8);}
+.board-filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.board-filter{padding:6px 14px;background:rgba(10,20,50,0.65);border:1px solid rgba(55,138,221,0.2);border-radius:20px;font-size:10px;color:rgba(255,255,255,0.5);cursor:pointer;white-space:nowrap;font-family:'Kaisei Decol',serif;transition:.2s;}
+.board-filter.on{background:rgba(0,0,255,0.15);border-color:#0000ff;color:#fff;}
 .comment-form textarea::placeholder{color:rgba(255,255,255,0.3);}
 .post-btn{width:100%;padding:11px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;letter-spacing:0.1em;cursor:pointer;font-family:'Kaisei Decol',serif;transition:.2s;}
 .post-btn:hover{background:rgba(55,138,221,0.3);}
@@ -440,8 +448,22 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
     <div class="sec-title">観測者掲示板</div>
     <div id="b-login-req" class="login-req"><p>掲示板に投稿するには<br>ログインが必要だよ！</p><button class="lreq-btn" onclick="openLogin()">ログインして投稿する</button></div>
     <div class="comment-form" id="b-form" style="display:none;">
+      <div class="tag-select">
+        <div class="tag-sel-btn on" id="tag-btn-daily" onclick="selectTag('日常')">#ないる宛て</div>
+        <div class="tag-sel-btn" id="tag-btn-fa" onclick="selectTag('FA')">#ないるのアトリエ</div>
+      </div>
       <textarea id="c-input" rows="3" placeholder="観測所からメッセージを送ろう..."></textarea>
+      <div id="fa-upload-area" style="display:none;margin-bottom:8px;">
+        <img id="fa-img-preview" style="display:none;width:100%;border-radius:8px;margin-bottom:6px;max-height:200px;object-fit:cover;">
+        <input type="file" id="fa-img-file" class="file-hidden" accept="image/*" onchange="previewFaImg(this)">
+        <button class="post-btn" style="background:rgba(55,138,221,0.1);margin-bottom:0;" onclick="document.getElementById('fa-img-file').click()">📎 画像を添付</button>
+      </div>
       <button class="post-btn" onclick="postComment()">投稿する</button>
+    </div>
+    <div class="board-filters">
+      <div class="board-filter on" onclick="filterBoard('all')">すべて</div>
+      <div class="board-filter" onclick="filterBoard('日常')">#ないる宛て</div>
+      <div class="board-filter" onclick="filterBoard('FA')">#ないるのアトリエ</div>
     </div>
     <div id="comment-list"></div>
   </div>
@@ -960,24 +982,75 @@ async function renderMypage(){
 }
 
 // ---- BOARD ----
+let currentTag='日常';
+let boardFilter='all';
+let faImgFile=null;
+
+function selectTag(tag){
+  currentTag=tag;
+  document.getElementById('tag-btn-daily').classList.toggle('on',tag==='日常');
+  document.getElementById('tag-btn-fa').classList.toggle('on',tag==='FA');
+  document.getElementById('fa-upload-area').style.display=tag==='FA'?'block':'none';
+  if(tag==='日常'){faImgFile=null;document.getElementById('fa-img-preview').style.display='none';}
+}
+function previewFaImg(input){
+  if(!input.files[0])return;
+  faImgFile=input.files[0];
+  const r=new FileReader();
+  r.onload=e=>{const img=document.getElementById('fa-img-preview');img.src=e.target.result;img.style.display='block';};
+  r.readAsDataURL(faImgFile);
+}
+function filterBoard(f){
+  boardFilter=f;
+  document.querySelectorAll('.board-filter').forEach(b=>b.classList.remove('on'));
+  event.target.classList.add('on');
+  document.querySelectorAll('#comment-list .comment-card').forEach(c=>{
+    const t=c.dataset.tag||'日常';
+    c.style.display=(f==='all'||f===t)?'':'none';
+  });
+}
 async function postComment(){
   if(!me)return;
-  const txt=document.getElementById('c-input').value.trim();if(!txt)return;
+  const txt=document.getElementById('c-input').value.trim();
+  if(!txt&&!faImgFile)return;
   const cols=['#185fa5','#0c447c','#042c53','#378add'];
   const col=cols[Math.floor(Math.random()*cols.length)];
-  const d=document.createElement('div');d.className='comment-card';
-  d.innerHTML=`<div class="c-head"><div class="c-av" style="background:${col};">${me.init}</div><div class="c-name">${me.name}</div><div class="c-time">たった今</div></div><div class="c-body">${txt}</div>`;
+  const tagLabel=currentTag==='FA'?'#ないるのアトリエ':'#ないる宛て';
+  // 画像アップロード
+  let imgUrl=null;
+  if(faImgFile){
+    imgUrl=await uploadToStorage(`board/${Date.now()}.jpg`,faImgFile);
+    if(!imgUrl) imgUrl=await fileToBase64(faImgFile);
+  }
+  const imgHtml=imgUrl?`<img class="c-img" src="${imgUrl}">`:'';
+  const d=document.createElement('div');d.className='comment-card';d.dataset.tag=currentTag;
+  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'')">✕</button><div class="c-tag">${tagLabel}</div><div class="c-head"><div class="c-av" style="background:${col};">${me.init}</div><div class="c-name">${me.name}</div><div class="c-time">たった今</div></div><div class="c-body">${txt||''}</div>${imgHtml}`;
   document.getElementById('comment-list').prepend(d);
   document.getElementById('c-input').value='';
-  await sb.from('posts').insert({user_name:me.name,body:txt});
-  addPostPoint();
+  faImgFile=null;
+  document.getElementById('fa-img-preview').style.display='none';
+  document.getElementById('fa-img-file').value='';
+  const isFa=currentTag==='FA';
+  await sb.from('posts').insert({user_name:me.name,body:txt||'',tag:currentTag,image_url:imgUrl});
+  if(isFa){
+    // FA投稿は3pt
+    const pts=(me.points||0)+3;
+    me.points=pts;
+    try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+    try{await sb.from('users').update({points:pts}).eq('id',me.id);}catch(e){}
+  } else {
+    addPostPoint();
+  }
 }
 
 function makeCommentCard(p,col){
   const init=p.user_name?p.user_name[0]:'?';
   const time=p.created_at?new Date(p.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'たった今';
-  const d=document.createElement('div');d.className='comment-card';d.dataset.id=p.id||'';
-  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'${p.id||''}')">✕</button><div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body}</div>`;
+  const tag=p.tag||'日常';
+  const tagLabel=tag==='FA'?'#ないるのアトリエ':'#ないる宛て';
+  const imgHtml=p.image_url?`<img class="c-img" src="${p.image_url}">`:'';
+  const d=document.createElement('div');d.className='comment-card';d.dataset.id=p.id||'';d.dataset.tag=tag;
+  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'${p.id||''}')">✕</button><div class="c-tag">${tagLabel}</div><div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body||''}</div>${imgHtml}`;
   return d;
 }
 async function loadPosts(){
