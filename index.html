@@ -1302,7 +1302,6 @@ function openCropModal(src){
   const img=document.getElementById('crop-img');
   cropScale=1;cropX=0;cropY=0;
   document.getElementById('crop-scale').value=1;
-  img.src=src;
   img.onload=()=>{
     // 円を完全に埋めるスケール（短辺基準）
     cropScale=280/Math.min(img.naturalWidth,img.naturalHeight);
@@ -1313,6 +1312,7 @@ function openCropModal(src){
     cropY=(280-img.naturalHeight*cropScale)/2;
     applyCropTransform();
   };
+  img.src=src; // onloadの後にsrcをセット（即時ロード対策）
   modal.classList.add('on');
   // マウス
   img.onmousedown=e=>{e.preventDefault();cropDragging=true;cropStartX=e.clientX-cropX;cropStartY=e.clientY-cropY;};
