@@ -194,6 +194,13 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .bday-cd-num{font-size:28px;font-weight:700;font-family:monospace;text-shadow:0 0 20px rgba(55,138,221,0.6);}
 .bday-cd-sub{font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;}
 .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.rank-progress{background:rgba(10,20,50,0.65);border:1px solid rgba(0,0,255,0.3);border-radius:12px;padding:14px;margin-bottom:14px;}
+.rp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.rp-label{font-size:10px;color:#378add;letter-spacing:0.15em;}
+.rp-next{font-size:10px;color:rgba(255,255,255,0.5);}
+.rp-bar-bg{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;}
+.rp-bar{height:100%;background:linear-gradient(90deg,#0000ff,rgba(0,100,255,0.8));border-radius:3px;transition:width .8s cubic-bezier(.22,.68,0,1.2);}
+.rp-msg{font-size:11px;color:rgba(255,255,255,0.6);margin-top:8px;text-align:center;letter-spacing:0.05em;}
 /* スタンプアニメーション */
 .stamp-overlay{position:fixed;inset:0;z-index:700;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
 .stamp-circle{width:130px;height:130px;border-radius:50%;border:4px solid rgba(0,0,255,0.9);background:rgba(0,0,30,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;opacity:0;transform:scale(2) rotate(-15deg);}
@@ -476,6 +483,15 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
         <div class="bday-cd-label">BIRTHDAY COUNTDOWN</div>
         <div class="bday-cd-num" id="bday-cd-num">---</div>
         <div class="bday-cd-sub" id="bday-cd-sub">次の誕生日まで</div>
+      </div>
+      <!-- レベルアップ進捗 -->
+      <div class="rank-progress">
+        <div class="rp-head">
+          <span class="rp-label" id="rp-current">見習い観測者</span>
+          <span class="rp-next" id="rp-next-label">次: 観測者</span>
+        </div>
+        <div class="rp-bar-bg"><div class="rp-bar" id="rp-bar" style="width:0%"></div></div>
+        <div class="rp-msg" id="rp-msg">あと10ptでレベルアップ！</div>
       </div>
       <!-- 統計 -->
       <div class="stats-grid">
@@ -916,6 +932,22 @@ async function renderMypage(){
   document.getElementById('stat-posts').textContent=posts;
   document.getElementById('stat-days').textContent=days;
   document.getElementById('stat-points').textContent=totalPoints;
+  // レベルアップ進捗バー
+  const nextRank=ranks.find(r=>r.min>totalPoints);
+  if(nextRank){
+    const prevMin=rank.min;
+    const pct=Math.min(100,Math.round((totalPoints-prevMin)/(nextRank.min-prevMin)*100));
+    const need=nextRank.min-totalPoints;
+    document.getElementById('rp-current').textContent=rank.label;
+    document.getElementById('rp-next-label').textContent=`次: ${nextRank.label}`;
+    setTimeout(()=>document.getElementById('rp-bar').style.width=pct+'%',100);
+    document.getElementById('rp-msg').textContent=`あと${need}ptでレベルアップ！`;
+  } else {
+    document.getElementById('rp-current').textContent=rank.label;
+    document.getElementById('rp-next-label').textContent='MAX';
+    document.getElementById('rp-bar').style.width='100%';
+    document.getElementById('rp-msg').textContent='最高ランクに到達！✨';
+  }
   document.getElementById('bday-cd-num').textContent=bdayText;
   document.getElementById('bday-cd-sub').textContent=bdayToday?'今日が誕生日！🎂':'次の誕生日まで';
   document.getElementById('bday-banner').style.display=bdayToday?'block':'none';
