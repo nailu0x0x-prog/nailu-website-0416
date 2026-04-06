@@ -1043,17 +1043,27 @@ async function postComment(){
   }
 }
 
+let avatarCache={};
+async function loadAvatarCache(){
+  const{data}=await sb.from('users').select('name,avatar_url').not('avatar_url','is',null);
+  if(data) data.forEach(u=>{if(u.avatar_url)avatarCache[u.name]=u.avatar_url;});
+}
 function makeCommentCard(p,col){
   const init=p.user_name?p.user_name[0]:'?';
   const time=p.created_at?new Date(p.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'たった今';
   const tag=p.tag||'日常';
   const tagLabel=tag==='FA'?'#ないるのアトリエ':'#ないる宛て';
   const imgHtml=p.image_url?`<img class="c-img" src="${p.image_url}">`:'';
+  const avUrl=avatarCache[p.user_name];
+  const avHtml=avUrl
+    ?`<div class="c-av" style="background:${col};overflow:hidden;"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`
+    :`<div class="c-av" style="background:${col};">${init}</div>`;
   const d=document.createElement('div');d.className='comment-card';d.dataset.id=p.id||'';d.dataset.tag=tag;
-  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'${p.id||''}')">✕</button><div class="c-tag">${tagLabel}</div><div class="c-head"><div class="c-av" style="background:${col};">${init}</div><div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body||''}</div>${imgHtml}`;
+  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'${p.id||''}')">✕</button><div class="c-tag">${tagLabel}</div><div class="c-head">${avHtml}<div class="c-name">${p.user_name}</div><div class="c-time">${time}</div></div><div class="c-body">${p.body||''}</div>${imgHtml}`;
   return d;
 }
 async function loadPosts(){
+  await loadAvatarCache();
   const{data}=await sb.from('posts').select('*').order('created_at',{ascending:false}).limit(50);
   if(!data)return;
   const list=document.getElementById('comment-list');list.innerHTML='';
@@ -1276,31 +1286,46 @@ function uploadAvatar(input){
 
 // ---- トリミング ----
 let cropX=0,cropY=0,cropScale=1,cropDragging=false,cropStartX=0,cropStartY=0;
+let _cmove=null,_cup=null,_ctmove=null,_ctend=null;
+
+function _removeCropHandlers(){
+  if(_cmove) window.removeEventListener('mousemove',_cmove);
+  if(_cup)   window.removeEventListener('mouseup',_cup);
+  if(_ctmove)window.removeEventListener('touchmove',_ctmove);
+  if(_ctend) window.removeEventListener('touchend',_ctend);
+  _cmove=_cup=_ctmove=_ctend=null;
+}
 function openCropModal(src){
+  _removeCropHandlers();
+  cropDragging=false;
   const modal=document.getElementById('crop-modal');
   const img=document.getElementById('crop-img');
-  const area=document.getElementById('crop-area');
   cropScale=1;cropX=0;cropY=0;
   document.getElementById('crop-scale').value=1;
   img.src=src;
   img.onload=()=>{
-    const s=280/Math.min(img.naturalWidth,img.naturalHeight);
-    cropScale=s;
-    document.getElementById('crop-scale').value=Math.min(s,3);
+    // 円を完全に埋めるスケール（短辺基準）
+    cropScale=280/Math.min(img.naturalWidth,img.naturalHeight);
+    cropScale=Math.min(Math.max(cropScale,0.5),3);
+    document.getElementById('crop-scale').value=cropScale;
+    // 中央に配置
     cropX=(280-img.naturalWidth*cropScale)/2;
     cropY=(280-img.naturalHeight*cropScale)/2;
     applyCropTransform();
   };
   modal.classList.add('on');
-  // ドラッグ（マウス）
-  const imgEl=document.getElementById('crop-img');
-  imgEl.onmousedown=e=>{cropDragging=true;cropStartX=e.clientX-cropX;cropStartY=e.clientY-cropY;e.preventDefault();};
-  window.onmousemove=e=>{if(!cropDragging)return;cropX=e.clientX-cropStartX;cropY=e.clientY-cropStartY;applyCropTransform();};
-  window.onmouseup=()=>cropDragging=false;
+  // マウス
+  img.onmousedown=e=>{e.preventDefault();cropDragging=true;cropStartX=e.clientX-cropX;cropStartY=e.clientY-cropY;};
+  _cmove=e=>{if(!cropDragging)return;cropX=e.clientX-cropStartX;cropY=e.clientY-cropStartY;applyCropTransform();};
+  _cup=()=>{cropDragging=false;};
+  window.addEventListener('mousemove',_cmove);
+  window.addEventListener('mouseup',_cup);
   // タッチ
-  imgEl.ontouchstart=e=>{const t=e.touches[0];cropDragging=true;cropStartX=t.clientX-cropX;cropStartY=t.clientY-cropY;};
-  window.ontouchmove=e=>{if(!cropDragging)return;const t=e.touches[0];cropX=t.clientX-cropStartX;cropY=t.clientY-cropStartY;applyCropTransform();};
-  window.ontouchend=()=>cropDragging=false;
+  img.ontouchstart=e=>{e.preventDefault();const t=e.touches[0];cropDragging=true;cropStartX=t.clientX-cropX;cropStartY=t.clientY-cropY;};
+  _ctmove=e=>{if(!cropDragging)return;e.preventDefault();const t=e.touches[0];cropX=t.clientX-cropStartX;cropY=t.clientY-cropStartY;applyCropTransform();};
+  _ctend=()=>{cropDragging=false;};
+  window.addEventListener('touchmove',_ctmove,{passive:false});
+  window.addEventListener('touchend',_ctend);
 }
 function scaleCrop(v){
   cropScale=parseFloat(v);
@@ -1315,6 +1340,8 @@ function applyCropTransform(){
 }
 function closeCropModal(){
   document.getElementById('crop-modal').classList.remove('on');
+  cropDragging=false;
+  _removeCropHandlers();
 }
 async function confirmCrop(){
   const img=document.getElementById('crop-img');
@@ -1341,6 +1368,7 @@ async function confirmCrop(){
   }
 }
 function applyAvatar(url){
+  if(me&&me.name) avatarCache[me.name]=url;
   const img=document.getElementById('mc-av-img');
   const init=document.getElementById('mc-av-init');
   if(img){img.src=url;img.style.display='block';}
