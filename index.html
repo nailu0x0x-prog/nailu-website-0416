@@ -1417,26 +1417,30 @@ function closeCropModal(){
   _cMM=_cMU=_cTM=_cTE=_cWH=null;
 }
 async function confirmCrop(){
+  if(!_ci){alert('画像が読み込まれていません');return;}
   const canvas=document.createElement('canvas');
   canvas.width=280;canvas.height=280;
   const ctx=canvas.getContext('2d');
   ctx.beginPath();ctx.arc(140,140,140,0,Math.PI*2);ctx.clip();
-  if(_ci) ctx.drawImage(_ci,_cOffX,_cOffY,_ci.naturalWidth*_cScale,_ci.naturalHeight*_cScale);
+  ctx.drawImage(_ci,_cOffX,_cOffY,_ci.naturalWidth*_cScale,_ci.naturalHeight*_cScale);
   closeCropModal();
+  // まずbase64で確実に反映（アップロード失敗時の保険）
+  const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+  me.avatar_url=dataUrl;
+  try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+  applyAvatar(dataUrl);
+  // Supabase Storageにもアップロード試みる
   try {
-    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.85));
-    let url=await uploadToStorage(`avatars/user_${me.id}.jpg`,new File([blob],'avatar.jpg',{type:'image/jpeg'}));
-    if(!url) url=canvas.toDataURL('image/jpeg',0.85);
-    try{await sb.from('users').update({avatar_url:url}).eq('id',me.id);}catch(e){}
-    me.avatar_url=url;
-    try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
-    applyAvatar(url);
-  } catch(e) {
-    console.error('アバター保存エラー:',e);
-    const fallback=canvas.toDataURL('image/jpeg',0.85);
-    me.avatar_url=fallback;
-    try{localStorage.setItem('me',JSON.stringify(me));}catch(e2){}
-    applyAvatar(fallback);
+    const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej('toBlob失敗'),'image/jpeg',0.85));
+    const url=await uploadToStorage(`avatars/user_${me.id}.jpg`,new File([blob],'avatar.jpg',{type:'image/jpeg'}));
+    if(url){
+      try{await sb.from('users').update({avatar_url:url}).eq('id',me.id);}catch(e){console.warn('DB更新失敗',e);}
+      me.avatar_url=url;
+      try{localStorage.setItem('me',JSON.stringify(me));}catch(e){}
+      applyAvatar(url);
+    }
+  } catch(e){
+    console.warn('Storageアップロード失敗（base64で保存済み）:',e);
   }
 }
 function applyAvatar(url){
