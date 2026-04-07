@@ -251,15 +251,11 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 /* トリミングモーダル */
 .crop-modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,3,12,0.96);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
 .crop-modal-bg.on{display:flex;}
-.crop-area{position:relative;width:280px;height:280px;overflow:hidden;border-radius:50%;border:2px solid #378add;box-shadow:0 0 30px rgba(55,138,221,0.4);}
-.crop-img{position:absolute;cursor:move;user-select:none;touch-action:none;}
+.crop-canvas{display:block;cursor:move;touch-action:none;}
 .crop-hint{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.1em;}
 .crop-btns{display:flex;gap:10px;}
 .crop-btn{padding:10px 24px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;cursor:pointer;font-family:'Kaisei Decol',serif;}
 .crop-cancel{padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:'Kaisei Decol',serif;}
-.crop-scale{display:flex;align-items:center;gap:10px;width:280px;}
-.crop-scale input{flex:1;accent-color:#378add;}
-.crop-scale span{font-size:10px;color:#378add;}
 /* 削除ボタン共通 */
 .del-btn{display:none;position:absolute;top:8px;right:8px;background:rgba(226,75,74,0.85);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:13px;cursor:pointer;align-items:center;justify-content:center;line-height:1;flex-shrink:0;}
 .admin-mode .del-btn{display:flex;}
@@ -601,15 +597,8 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 
   <!-- CROP MODAL -->
   <div class="crop-modal-bg" id="crop-modal">
-    <div class="crop-hint">ドラッグで位置を調整</div>
-    <div class="crop-area" id="crop-area">
-      <img id="crop-img" class="crop-img">
-    </div>
-    <div class="crop-scale">
-      <span>小</span>
-      <input type="range" id="crop-scale" min="0.5" max="3" step="0.01" value="1" oninput="scaleCrop(this.value)">
-      <span>大</span>
-    </div>
+    <div class="crop-hint">ドラッグで移動・スクロールで拡大縮小<br><span style="font-size:10px;opacity:.6;">スマホはピンチで拡大縮小</span></div>
+    <canvas class="crop-canvas" id="crop-canvas" width="280" height="280"></canvas>
     <div class="crop-btns">
       <button class="crop-cancel" onclick="closeCropModal()">キャンセル</button>
       <button class="crop-btn" onclick="confirmCrop()">この形で保存</button>
@@ -1284,72 +1273,155 @@ function uploadAvatar(input){
   input.value='';
 }
 
-// ---- トリミング ----
-let cropX=0,cropY=0,cropScale=1,cropDragging=false,cropStartX=0,cropStartY=0;
-let _cmove=null,_cup=null,_ctmove=null,_ctend=null;
+// ---- トリミング（Canvasベース）----
+// 座標系はすべてcanvas内（0〜280）で統一
+let _ci=null;           // 読み込んだImageオブジェクト
+let _cOffX=0,_cOffY=0; // 描画オフセット（画像左上がcanvas内のどこか）
+let _cScale=1,_cFit=1; // 現在スケール、フィットスケール
+let _cDrag=false,_cDX=0,_cDY=0; // ドラッグ管理
+let _cPinchDist=0; // ピンチ管理
+let _cMM=null,_cMU=null,_cTM=null,_cTE=null,_cWH=null;
 
-function _removeCropHandlers(){
-  if(_cmove) window.removeEventListener('mousemove',_cmove);
-  if(_cup)   window.removeEventListener('mouseup',_cup);
-  if(_ctmove)window.removeEventListener('touchmove',_ctmove);
-  if(_ctend) window.removeEventListener('touchend',_ctend);
-  _cmove=_cup=_ctmove=_ctend=null;
+function _cropCanvasPos(e,cv){
+  // clientXをcanvas座標（0〜280）に変換
+  const r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/r.width*280, y:(e.clientY-r.top)/r.height*280};
+}
+function _drawCrop(){
+  const cv=document.getElementById('crop-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,280,280);
+  if(!_ci)return;
+  // 画像を描画
+  ctx.drawImage(_ci,_cOffX,_cOffY,_ci.naturalWidth*_cScale,_ci.naturalHeight*_cScale);
+  // 円の外を暗くする（プレビュー用）
+  ctx.save();
+  ctx.fillStyle='rgba(0,3,12,0.65)';
+  ctx.beginPath();
+  ctx.rect(0,0,280,280);
+  ctx.arc(140,140,140,0,Math.PI*2,true);
+  ctx.fill('evenodd');
+  ctx.restore();
+  // 円の枠
+  ctx.strokeStyle='#378add';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(140,140,139,0,Math.PI*2);
+  ctx.stroke();
+}
+function _cropZoomAt(newScale,cx,cy){
+  // canvas内の座標(cx,cy)を固定点にして拡大縮小
+  if(!_ci)return;
+  newScale=Math.max(_cFit*0.8,Math.min(_cFit*6,newScale));
+  const ratio=newScale/_cScale;
+  _cOffX=cx-(cx-_cOffX)*ratio;
+  _cOffY=cy-(cy-_cOffY)*ratio;
+  _cScale=newScale;
+  _drawCrop();
 }
 function openCropModal(src){
-  _removeCropHandlers();
-  cropDragging=false;
-  const modal=document.getElementById('crop-modal');
-  const img=document.getElementById('crop-img');
-  cropScale=1;cropX=0;cropY=0;
-  document.getElementById('crop-scale').value=1;
-  img.onload=()=>{
-    // 円を完全に埋めるスケール（短辺基準）
-    cropScale=280/Math.min(img.naturalWidth,img.naturalHeight);
-    cropScale=Math.min(Math.max(cropScale,0.5),3);
-    document.getElementById('crop-scale').value=cropScale;
-    // 中央に配置
-    cropX=(280-img.naturalWidth*cropScale)/2;
-    cropY=(280-img.naturalHeight*cropScale)/2;
-    applyCropTransform();
+  const cv=document.getElementById('crop-canvas');
+  // クリーンアップ
+  if(_cMM)window.removeEventListener('mousemove',_cMM);
+  if(_cMU)window.removeEventListener('mouseup',_cMU);
+  if(_cTM)window.removeEventListener('touchmove',_cTM);
+  if(_cTE)window.removeEventListener('touchend',_cTE);
+  if(_cWH)cv.removeEventListener('wheel',_cWH);
+  _cMM=_cMU=_cTM=_cTE=_cWH=null;
+  document.getElementById('crop-modal').classList.add('on');
+  _cDrag=false;_cPinchDist=0;
+  _ci=new Image();
+  _ci.onload=()=>{
+    const w=_ci.naturalWidth,h=_ci.naturalHeight;
+    _cFit=280/Math.min(w,h);
+    _cScale=_cFit;
+    _cOffX=(280-w*_cScale)/2;
+    _cOffY=(280-h*_cScale)/2;
+    _drawCrop();
   };
-  img.src=src; // onloadの後にsrcをセット（即時ロード対策）
-  modal.classList.add('on');
-  // マウス
-  img.onmousedown=e=>{e.preventDefault();cropDragging=true;cropStartX=e.clientX-cropX;cropStartY=e.clientY-cropY;};
-  _cmove=e=>{if(!cropDragging)return;cropX=e.clientX-cropStartX;cropY=e.clientY-cropStartY;applyCropTransform();};
-  _cup=()=>{cropDragging=false;};
-  window.addEventListener('mousemove',_cmove);
-  window.addEventListener('mouseup',_cup);
-  // タッチ
-  img.ontouchstart=e=>{e.preventDefault();const t=e.touches[0];cropDragging=true;cropStartX=t.clientX-cropX;cropStartY=t.clientY-cropY;};
-  _ctmove=e=>{if(!cropDragging)return;e.preventDefault();const t=e.touches[0];cropX=t.clientX-cropStartX;cropY=t.clientY-cropStartY;applyCropTransform();};
-  _ctend=()=>{cropDragging=false;};
-  window.addEventListener('touchmove',_ctmove,{passive:false});
-  window.addEventListener('touchend',_ctend);
-}
-function scaleCrop(v){
-  cropScale=parseFloat(v);
-  applyCropTransform();
-}
-function applyCropTransform(){
-  const img=document.getElementById('crop-img');
-  img.style.width=img.naturalWidth*cropScale+'px';
-  img.style.height=img.naturalHeight*cropScale+'px';
-  img.style.left=cropX+'px';
-  img.style.top=cropY+'px';
+  _ci.src=src;
+  // ---- マウスドラッグ ----
+  cv.onmousedown=e=>{
+    e.preventDefault();_cDrag=true;
+    const p=_cropCanvasPos(e,cv);
+    _cDX=p.x-_cOffX;_cDY=p.y-_cOffY;
+  };
+  _cMM=e=>{
+    if(!_cDrag)return;
+    const p=_cropCanvasPos(e,cv);
+    _cOffX=p.x-_cDX;_cOffY=p.y-_cDY;
+    _drawCrop();
+  };
+  _cMU=()=>{_cDrag=false;};
+  window.addEventListener('mousemove',_cMM);
+  window.addEventListener('mouseup',_cMU);
+  // ---- ホイールズーム ----
+  _cWH=e=>{
+    e.preventDefault();
+    const p=_cropCanvasPos(e,cv);
+    const delta=e.deltaY<0?1.1:0.9; // 上スクロール=拡大
+    _cropZoomAt(_cScale*delta,p.x,p.y);
+  };
+  cv.addEventListener('wheel',_cWH,{passive:false});
+  // ---- タッチ（1本=ドラッグ、2本=ピンチ）----
+  cv.ontouchstart=e=>{
+    e.preventDefault();
+    if(e.touches.length===1){
+      _cDrag=true;
+      const p=_cropCanvasPos(e.touches[0],cv);
+      _cDX=p.x-_cOffX;_cDY=p.y-_cOffY;
+      _cPinchDist=0;
+    } else if(e.touches.length===2){
+      _cDrag=false;
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      _cPinchDist=Math.hypot(dx,dy);
+    }
+  };
+  _cTM=e=>{
+    e.preventDefault();
+    if(e.touches.length===1&&_cDrag){
+      const p=_cropCanvasPos(e.touches[0],cv);
+      _cOffX=p.x-_cDX;_cOffY=p.y-_cDY;
+      _drawCrop();
+    } else if(e.touches.length===2&&_cPinchDist>0){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.hypot(dx,dy);
+      const ratio=dist/_cPinchDist;
+      // ピンチの中心点を固定基点にする
+      const mx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      const my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      const cp=_cropCanvasPos({clientX:mx,clientY:my},cv);
+      _cropZoomAt(_cScale*ratio,cp.x,cp.y);
+      _cPinchDist=dist;
+    }
+  };
+  _cTE=e=>{
+    if(e.touches.length===0)_cDrag=false;
+    if(e.touches.length<2)_cPinchDist=0;
+  };
+  window.addEventListener('touchmove',_cTM,{passive:false});
+  window.addEventListener('touchend',_cTE);
 }
 function closeCropModal(){
+  const cv=document.getElementById('crop-canvas');
   document.getElementById('crop-modal').classList.remove('on');
-  cropDragging=false;
-  _removeCropHandlers();
+  _cDrag=false;_cPinchDist=0;
+  if(_cMM)window.removeEventListener('mousemove',_cMM);
+  if(_cMU)window.removeEventListener('mouseup',_cMU);
+  if(_cTM)window.removeEventListener('touchmove',_cTM);
+  if(_cTE)window.removeEventListener('touchend',_cTE);
+  if(_cWH)cv.removeEventListener('wheel',_cWH);
+  _cMM=_cMU=_cTM=_cTE=_cWH=null;
 }
 async function confirmCrop(){
-  const img=document.getElementById('crop-img');
   const canvas=document.createElement('canvas');
   canvas.width=280;canvas.height=280;
   const ctx=canvas.getContext('2d');
   ctx.beginPath();ctx.arc(140,140,140,0,Math.PI*2);ctx.clip();
-  ctx.drawImage(img,cropX,cropY,img.naturalWidth*cropScale,img.naturalHeight*cropScale);
+  if(_ci) ctx.drawImage(_ci,_cOffX,_cOffY,_ci.naturalWidth*_cScale,_ci.naturalHeight*_cScale);
   closeCropModal();
   try {
     const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.85));
@@ -1397,8 +1469,7 @@ function previewHomeImg(input){
     prev.src=url; prev.style.display='block';
   });
 }
-async function saveHomeImg(){
-  const input=document.getElementById('home-img-file');
+１  const input=document.getElementById('home-img-file');
   const msg=document.getElementById('home-img-msg');
   if(!input.files[0]){msg.textContent='画像を選択してください';return;}
   msg.textContent='アップロード中...';
