@@ -256,6 +256,38 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 .crop-btns{display:flex;gap:10px;}
 .crop-btn{padding:10px 24px;background:rgba(55,138,221,0.15);border:1px solid #378add;border-radius:10px;color:#fff;font-size:12px;cursor:pointer;font-family:'Kaisei Decol',serif;}
 .crop-cancel{padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;font-family:'Kaisei Decol',serif;}
+/* ギャラリー */
+.gal-section{margin-bottom:28px;}
+.gal-section-title{font-size:10px;letter-spacing:0.25em;color:#378add;margin-bottom:10px;text-align:center;}
+.gal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.gal-item{position:relative;border-radius:10px;overflow:hidden;border:1px solid rgba(0,0,255,0.3);aspect-ratio:1;cursor:pointer;}
+.gal-item img{width:100%;height:100%;object-fit:cover;display:block;transition:.3s;}
+.gal-item:hover img{transform:scale(1.05);}
+.gal-item-cap{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,3,12,0.8));font-size:10px;color:#fff;padding:16px 6px 5px;letter-spacing:0.05em;opacity:0;transition:.2s;}
+.gal-item:hover .gal-item-cap{opacity:1;}
+/* スライド */
+.gal-slide-wrap{position:relative;overflow:hidden;border-radius:12px;border:1px solid rgba(0,0,255,0.3);margin-bottom:8px;aspect-ratio:16/9;}
+.gal-slide-track{display:flex;transition:transform .4s ease;}
+.gal-slide-track .gal-slide-img{flex:0 0 100%;aspect-ratio:16/9;object-fit:cover;}
+.gal-slide-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,3,12,0.6);border:1px solid rgba(55,138,221,0.4);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.gal-slide-btn.prev{left:6px;}
+.gal-slide-btn.next{right:6px;}
+.gal-slide-dots{display:flex;justify-content:center;gap:5px;margin-top:5px;}
+.gal-dot{width:6px;height:6px;border-radius:50%;background:rgba(55,138,221,0.3);cursor:pointer;transition:.2s;}
+.gal-dot.act{background:#378add;}
+/* ギャラリーライトボックス */
+.gal-lb{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,3,12,0.95);z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;}
+.gal-lb.on{display:flex;}
+.gal-lb img{max-width:92vw;max-height:80vh;border-radius:10px;object-fit:contain;}
+.gal-lb-cap{font-size:11px;color:rgba(255,255,255,0.6);margin-top:10px;}
+.gal-lb-close{position:absolute;top:16px;right:16px;color:#fff;font-size:22px;cursor:pointer;background:none;border:none;}
+/* 管理リスト */
+.gal-admin-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(55,138,221,0.1);}
+.gal-admin-item img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;}
+.gal-admin-item-info{flex:1;font-size:11px;color:rgba(255,255,255,0.7);}
+.gal-admin-item-btns{display:flex;gap:4px;}
+.gal-admin-item-btns button{background:none;border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:12px;}
+.gal-admin-item-btns .del{border-color:rgba(226,75,74,0.5);color:#e24b4a;}
 /* 削除ボタン共通 */
 .del-btn{display:none;position:absolute;top:8px;right:8px;background:rgba(226,75,74,0.85);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:13px;cursor:pointer;align-items:center;justify-content:center;line-height:1;flex-shrink:0;}
 .admin-mode .del-btn{display:flex;}
@@ -302,6 +334,7 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
     <div class="mitem" data-pg="news" onclick="goPage('news')">おしらせ</div>
     <div class="mitem" data-pg="schedule" onclick="goPage('schedule')">スケジュール</div>
     <div class="mitem" data-pg="goods" onclick="goPage('goods')">グッズ</div>
+    <div class="mitem" data-pg="gallery" onclick="goPage('gallery')">ギャラリー</div>
     <div class="mitem" data-pg="board" onclick="goPage('board')">掲示板</div>
     <div class="mitem hidden" id="menu-mypage" data-pg="mypage" onclick="goPage('mypage')">マイページ</div>
     <div class="mitem hidden" id="menu-admin" data-pg="admin" onclick="goPage('admin')">管理</div>
@@ -520,6 +553,12 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
     </div>
   </div>
 
+  <!-- GALLERY -->
+  <div class="pg" id="pg-gallery">
+    <div class="sec-title">VISUAL GALLERY</div>
+    <div id="gallery-content"></div>
+  </div>
+
   <!-- ADMIN -->
   <div class="pg" id="pg-admin">
     <div class="sec-title">管理画面</div>
@@ -590,6 +629,31 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
         <input class="admin-input" id="a-popup-title" placeholder="イベント名">
         <input class="admin-input" id="a-popup-url" placeholder="リンクURL">
         <button class="admin-btn" onclick="saveEventPopup()">保存する</button>
+      </div>
+      <div class="card">
+        <h3>ギャラリー管理</h3>
+        <div class="upload-msg" id="gal-msg"></div>
+        <!-- 画像追加 -->
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;letter-spacing:0.05em;">▼ 画像を追加</div>
+        <img id="gal-img-prev" class="goods-img-prev">
+        <input type="file" id="gal-img-file" class="file-hidden" accept="image/*" onchange="previewGalImg(this)">
+        <button class="admin-btn" onclick="document.getElementById('gal-img-file').click()">画像を選択</button>
+        <input class="admin-input" id="gal-caption" placeholder="キャプション（任意）">
+        <select class="admin-input" id="gal-type" onchange="galTypeChange()">
+          <option value="normal">通常（グリッド表示）</option>
+          <option value="slide">スライド</option>
+        </select>
+        <div id="gal-slide-opts" style="display:none;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">スライドグループ</div>
+          <select class="admin-input" id="gal-group-sel">
+            <option value="new">＋ 新規グループを作成</option>
+          </select>
+          <input class="admin-input" id="gal-new-group-name" placeholder="新規グループ名" style="display:none;">
+        </div>
+        <button class="admin-btn" onclick="addGalleryItem()">追加する</button>
+        <!-- 並び替え・削除 -->
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin:12px 0 6px;letter-spacing:0.05em;">▼ 並び替え・削除</div>
+        <div id="gal-admin-list"></div>
       </div>
       <button class="admin-btn" style="border-color:rgba(255,255,255,0.2);" onclick="doLogout()">ログアウト</button>
     </div>
@@ -744,6 +808,8 @@ function goPage(id){
   }
   document.querySelectorAll('.mitem').forEach(m=>m.classList.toggle('act',m.dataset.pg===id));
   if(id==='mypage') renderMypage();
+  if(id==='gallery') loadGallery();
+  if(id==='admin') loadGalleryAdmin();
   setTimeout(addCardDecos,200);
   closeSide();closeUMenu();
 }
@@ -1787,6 +1853,197 @@ function urlBase64ToUint8Array(base64String) {
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const raw = atob(base64);
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+// ---- GALLERY ----
+let _galGroups=[];
+let _galItems=[];
+let _galImgFile=null;
+let _galSlideIdx={}; // groupId → 現在のindex
+
+async function loadGallery(){
+  const cont=document.getElementById('gallery-content');
+  cont.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px;">読み込み中...</div>';
+  const [{data:groups},{data:items}]=await Promise.all([
+    sb.from('gallery_groups').select('*').order('order_index'),
+    sb.from('gallery_items').select('*').order('order_index')
+  ]);
+  _galGroups=groups||[];
+  _galItems=items||[];
+  _renderGallery();
+}
+
+function _renderGallery(){
+  const cont=document.getElementById('gallery-content');
+  cont.innerHTML='';
+  // スライドグループ
+  _galGroups.forEach(g=>{
+    const slides=_galItems.filter(i=>i.group_id===g.id);
+    if(!slides.length)return;
+    const idx=_galSlideIdx[g.id]||0;
+    const sec=document.createElement('div');
+    sec.className='gal-section';
+    sec.innerHTML=`<div class="gal-section-title">${g.name}</div>
+      <div class="gal-slide-wrap">
+        <div class="gal-slide-track" id="gsl-${g.id}" style="transform:translateX(-${idx*100}%)">
+          ${slides.map(i=>`<img class="gal-slide-img" src="${i.image_url}" alt="${i.caption||''}">`).join('')}
+        </div>
+        <button class="gal-slide-btn prev" onclick="galSlide(${g.id},-1)">‹</button>
+        <button class="gal-slide-btn next" onclick="galSlide(${g.id},1)">›</button>
+      </div>
+      <div class="gal-slide-dots">${slides.map((_,i)=>`<div class="gal-dot${i===idx?' act':''}" onclick="galSlideTo(${g.id},${i})"></div>`).join('')}</div>`;
+    cont.appendChild(sec);
+  });
+  // 通常グリッド
+  const normals=_galItems.filter(i=>i.type==='normal');
+  if(normals.length){
+    const sec=document.createElement('div');
+    sec.className='gal-section';
+    sec.innerHTML=`<div class="gal-section-title">GALLERY</div><div class="gal-grid">${
+      normals.map(i=>`<div class="gal-item" onclick="openGalLb('${i.image_url}','${(i.caption||'').replace(/'/g,"\\'")}')">
+        <img src="${i.image_url}" loading="lazy">
+        ${i.caption?`<div class="gal-item-cap">${i.caption}</div>`:''}
+      </div>`).join('')
+    }</div>`;
+    cont.appendChild(sec);
+  }
+  if(!_galGroups.length&&!normals.length){
+    cont.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.4);padding:40px;font-size:12px;">まだ画像がありません</div>';
+  }
+  // ライトボックスDOMがなければ作る
+  if(!document.getElementById('gal-lb')){
+    const lb=document.createElement('div');
+    lb.id='gal-lb';lb.className='gal-lb';
+    lb.innerHTML='<button class="gal-lb-close" onclick="closeGalLb()">✕</button><img id="gal-lb-img"><div class="gal-lb-cap" id="gal-lb-cap"></div>';
+    lb.addEventListener('click',e=>{if(e.target===lb)closeGalLb();});
+    document.body.appendChild(lb);
+  }
+}
+
+function galSlide(gid,dir){
+  const slides=_galItems.filter(i=>i.group_id===gid);
+  if(!slides.length)return;
+  const cur=_galSlideIdx[gid]||0;
+  galSlideTo(gid,(cur+dir+slides.length)%slides.length);
+}
+function galSlideTo(gid,idx){
+  _galSlideIdx[gid]=idx;
+  const track=document.getElementById('gsl-'+gid);
+  if(track) track.style.transform=`translateX(-${idx*100}%)`;
+  document.querySelectorAll(`#gsl-${gid}`).forEach(()=>{});
+  // ドット更新
+  const slides=_galItems.filter(i=>i.group_id===gid);
+  const dotsWrap=document.querySelector(`#gsl-${gid}`)?.closest('.gal-section')?.querySelector('.gal-slide-dots');
+  if(dotsWrap) dotsWrap.querySelectorAll('.gal-dot').forEach((d,i)=>d.classList.toggle('act',i===idx));
+}
+function openGalLb(url,cap){
+  document.getElementById('gal-lb-img').src=url;
+  document.getElementById('gal-lb-cap').textContent=cap;
+  document.getElementById('gal-lb').classList.add('on');
+}
+function closeGalLb(){document.getElementById('gal-lb').classList.remove('on');}
+
+// ---- ギャラリー管理 ----
+async function loadGalleryAdmin(){
+  if(!me||me.role!=='admin')return;
+  const [{data:groups},{data:items}]=await Promise.all([
+    sb.from('gallery_groups').select('*').order('order_index'),
+    sb.from('gallery_items').select('*').order('order_index')
+  ]);
+  _galGroups=groups||[];
+  _galItems=items||[];
+  _renderGalGroupSel();
+  _renderGalAdminList();
+}
+function _renderGalGroupSel(){
+  const sel=document.getElementById('gal-group-sel');
+  if(!sel)return;
+  sel.innerHTML='<option value="new">＋ 新規グループを作成</option>'+
+    _galGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  galGroupSelChange();
+}
+function galTypeChange(){
+  const t=document.getElementById('gal-type').value;
+  document.getElementById('gal-slide-opts').style.display=t==='slide'?'block':'none';
+}
+function galGroupSelChange(){
+  const v=document.getElementById('gal-group-sel').value;
+  document.getElementById('gal-new-group-name').style.display=v==='new'?'block':'none';
+}
+function previewGalImg(input){
+  if(!input.files[0])return;
+  _galImgFile=input.files[0];
+  const prev=document.getElementById('gal-img-prev');
+  fileToBase64(_galImgFile).then(url=>{prev.src=url;prev.style.display='block';});
+}
+async function addGalleryItem(){
+  const msg=document.getElementById('gal-msg');
+  if(!_galImgFile){msg.textContent='画像を選択してください';return;}
+  msg.textContent='アップロード中...';
+  const caption=document.getElementById('gal-caption').value.trim();
+  const type=document.getElementById('gal-type').value;
+  let group_id=null;
+  if(type==='slide'){
+    const sel=document.getElementById('gal-group-sel').value;
+    if(sel==='new'){
+      const gname=document.getElementById('gal-new-group-name').value.trim();
+      if(!gname){msg.textContent='グループ名を入力してください';return;}
+      const maxOrd=_galGroups.length?Math.max(..._galGroups.map(g=>g.order_index)):0;
+      const {data:ng}=await sb.from('gallery_groups').insert({name:gname,order_index:maxOrd+1}).select().single();
+      if(ng) group_id=ng.id;
+    } else {
+      group_id=parseInt(sel);
+    }
+  }
+  const url=await uploadToStorage(`gallery/${Date.now()}_${_galImgFile.name}`,_galImgFile);
+  if(!url){msg.textContent='アップロード失敗';return;}
+  const maxOrd=_galItems.length?Math.max(..._galItems.map(i=>i.order_index)):0;
+  await sb.from('gallery_items').insert({image_url:url,caption,type,group_id,order_index:maxOrd+1});
+  _galImgFile=null;
+  document.getElementById('gal-img-prev').style.display='none';
+  document.getElementById('gal-caption').value='';
+  document.getElementById('gal-img-file').value='';
+  msg.textContent='追加しました！';
+  setTimeout(()=>msg.textContent='',2000);
+  loadGalleryAdmin();
+}
+function _renderGalAdminList(){
+  const list=document.getElementById('gal-admin-list');
+  if(!list)return;
+  list.innerHTML='';
+  [..._galItems].sort((a,b)=>a.order_index-b.order_index).forEach((item,i,arr)=>{
+    const div=document.createElement('div');
+    div.className='gal-admin-item';
+    const group=_galGroups.find(g=>g.id===item.group_id);
+    div.innerHTML=`<img src="${item.image_url}">
+      <div class="gal-admin-item-info">
+        <div>${item.caption||'（キャプションなし）'}</div>
+        <div style="opacity:.5;font-size:10px;">${item.type==='slide'?'スライド: '+(group?.name||'?'):'通常'}</div>
+      </div>
+      <div class="gal-admin-item-btns">
+        <button title="上へ" onclick="galMoveItem(${item.id},-1)" ${i===0?'disabled':''}>↑</button>
+        <button title="下へ" onclick="galMoveItem(${item.id},1)" ${i===arr.length-1?'disabled':''}>↓</button>
+        <button class="del" title="削除" onclick="galDeleteItem(${item.id})">✕</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+async function galMoveItem(id,dir){
+  const sorted=[..._galItems].sort((a,b)=>a.order_index-b.order_index);
+  const idx=sorted.findIndex(i=>i.id===id);
+  const swapIdx=idx+dir;
+  if(swapIdx<0||swapIdx>=sorted.length)return;
+  const a=sorted[idx],b=sorted[swapIdx];
+  await Promise.all([
+    sb.from('gallery_items').update({order_index:b.order_index}).eq('id',a.id),
+    sb.from('gallery_items').update({order_index:a.order_index}).eq('id',b.id)
+  ]);
+  loadGalleryAdmin();
+}
+async function galDeleteItem(id){
+  if(!confirm('この画像を削除しますか？'))return;
+  await sb.from('gallery_items').delete().eq('id',id);
+  loadGalleryAdmin();
 }
 
 // ---- PWA ----
