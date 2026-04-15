@@ -77,6 +77,24 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
 /* ---- アニメーション ---- */
 @keyframes slideUp{from{opacity:0;transform:translateY(32px);}to{opacity:1;transform:translateY(0);}}
+/* ローディング */
+@keyframes loader-spin{to{transform:rotate(360deg);}}
+@keyframes loader-bar{from{width:0%;}to{width:100%;}}
+@keyframes loader-fade{to{opacity:0;pointer-events:none;}}
+#loader{position:fixed;inset:0;background:#00030c;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .6s ease;}
+#loader.hide{opacity:0;pointer-events:none;}
+.loader-ring-wrap{position:relative;width:90px;height:90px;}
+.loader-ring{width:90px;height:90px;border-radius:50%;border:2px solid rgba(55,138,221,0.15);border-top-color:#378add;border-right-color:rgba(55,138,221,0.4);animation:loader-spin 1.2s linear infinite;}
+.loader-stars{position:absolute;inset:0;animation:loader-spin 2.5s linear infinite reverse;}
+.loader-star{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 6px #378add;}
+.loader-star:nth-child(1){top:2px;left:43px;}
+.loader-star:nth-child(2){top:22px;right:4px;}
+.loader-star:nth-child(3){bottom:4px;right:22px;}
+.loader-star:nth-child(4){bottom:18px;left:4px;}
+.loader-star:nth-child(5){top:18px;left:4px;}
+.loader-label{font-size:11px;letter-spacing:0.35em;color:rgba(255,255,255,0.5);}
+.loader-bar-wrap{width:180px;height:2px;background:rgba(55,138,221,0.15);border-radius:2px;overflow:hidden;}
+.loader-bar{height:100%;background:linear-gradient(90deg,#378add,#0000ff);border-radius:2px;width:0%;transition:width .12s ease;}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
 .slide-up{opacity:0;animation:slideUp .55s cubic-bezier(.22,.68,0,1.2) forwards;}
 .avatar-ring{animation:float 3.8s ease-in-out infinite;}
@@ -333,6 +351,21 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 </style>
 </head>
 <body>
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-ring-wrap">
+    <div class="loader-ring"></div>
+    <div class="loader-stars">
+      <div class="loader-star"></div>
+      <div class="loader-star"></div>
+      <div class="loader-star"></div>
+      <div class="loader-star"></div>
+      <div class="loader-star"></div>
+    </div>
+  </div>
+  <div class="loader-label">LOADING</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+</div>
 <canvas id="bg"></canvas>
 <div class="app">
   <div class="hdr">
@@ -1357,9 +1390,31 @@ function addCardDecos(){
     });
   });
 }
+// ---- ローダー ----
+(()=>{
+  const bar=document.getElementById('loader-bar');
+  let pct=0;
+  // ランダムに増えるプログレスバー
+  const tick=setInterval(()=>{
+    pct+=Math.random()*18+5;
+    if(pct>=90){pct=90;clearInterval(tick);}
+    bar.style.width=pct+'%';
+  },150);
+  window._loaderDone=()=>{
+    clearInterval(tick);
+    bar.style.width='100%';
+    setTimeout(()=>{
+      document.getElementById('loader').classList.add('hide');
+      setTimeout(()=>document.getElementById('loader').remove(),700);
+    },300);
+  };
+})();
+
 window.addEventListener('load',()=>{
   loadPosts();loadSchedules();loadGoods();loadHomeImg();loadLiveStatus();loadIntro();loadYtEmbed();renderAllNews();checkPushStatus();loadEventPopup();
   setTimeout(addCardDecos,300);
+  // ローダー終了
+  setTimeout(()=>window._loaderDone&&window._loaderDone(),800);
   // ログイン状態を復元
   const saved=localStorage.getItem('me');
   if(saved){try{setUser(JSON.parse(saved));}catch(e){localStorage.removeItem('me');}}
