@@ -1475,12 +1475,16 @@ async function compressIfNeeded(file){
 async function uploadToStorage(path, file) {
   try {
     const compressed=await compressIfNeeded(file);
-    await sb.storage.from('images').remove([path]);
-    const {error}=await sb.storage.from('images').upload(path, compressed, {contentType:compressed.type,upsert:true});
-    if(error) return null;
-    const {data}=sb.storage.from('images').getPublicUrl(path);
+    // 日本語・特殊文字を含むパスを安全な名前に変換
+    const ext=compressed.type==='image/jpeg'?'jpg':(file.name.split('.').pop().replace(/[^a-z0-9]/gi,'')||'jpg');
+    const dir=path.includes('/')?path.split('/').slice(0,-1).join('/'):'';
+    const safePath=(dir?dir+'/':'')+Date.now()+'.'+ext;
+    await sb.storage.from('images').remove([safePath]);
+    const {error}=await sb.storage.from('images').upload(safePath, compressed, {contentType:compressed.type,upsert:true});
+    if(error){console.error('Storage error:',error);return null;}
+    const {data}=sb.storage.from('images').getPublicUrl(safePath);
     return data.publicUrl;
-  } catch(e){ return null; }
+  } catch(e){console.error('Upload error:',e);return null;}
 }
 function fileToBase64(file){
   return new Promise(resolve=>{
