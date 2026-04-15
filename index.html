@@ -2222,7 +2222,12 @@ async function addGalleryItem(){
   if(!url){msg.textContent='アップロード失敗';return;}
   msg.textContent='保存中...';
   const maxOrd=_galItems.length?Math.max(..._galItems.map(i=>i.order_index)):0;
-  const {data:inserted}=await sb.from('gallery_items').insert({image_url:url,caption,type,group_id,order_index:maxOrd+1}).select().single();
+  const {data:inserted,error:insErr}=await sb.from('gallery_items').insert({image_url:url,caption,type,group_id,order_index:maxOrd+1}).select().single();
+  if(insErr){
+    console.error('gallery_items insert error:',insErr);
+    msg.textContent='DB保存失敗: '+insErr.message;
+    return;
+  }
   if(inserted) _galItems.push(inserted);
   _galImgFile=null;
   document.getElementById('gal-img-prev').style.display='none';
