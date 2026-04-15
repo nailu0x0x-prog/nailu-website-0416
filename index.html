@@ -2197,7 +2197,6 @@ function previewGalImg(input){
 async function addGalleryItem(){
   const msg=document.getElementById('gal-msg');
   if(!_galImgFile){msg.textContent='画像を選択してください';return;}
-  msg.textContent='アップロード中...';
   const caption=document.getElementById('gal-caption').value.trim();
   const type=document.getElementById('gal-type').value;
   let group_id=null;
@@ -2208,22 +2207,27 @@ async function addGalleryItem(){
       if(!gname){msg.textContent='グループ名を入力してください';return;}
       const maxOrd=_galGroups.length?Math.max(..._galGroups.map(g=>g.order_index)):0;
       const {data:ng}=await sb.from('gallery_groups').insert({name:gname,order_index:maxOrd+1}).select().single();
-      if(ng) group_id=ng.id;
+      if(ng){group_id=ng.id;_galGroups.push(ng);}
     } else {
       group_id=parseInt(sel);
     }
   }
+  // 圧縮フェーズ
+  msg.textContent=_galImgFile.size>2*1024*1024?'圧縮中...':'アップロード中...';
   const url=await uploadToStorage(`gallery/${Date.now()}_${_galImgFile.name}`,_galImgFile);
   if(!url){msg.textContent='アップロード失敗';return;}
+  msg.textContent='保存中...';
   const maxOrd=_galItems.length?Math.max(..._galItems.map(i=>i.order_index)):0;
-  await sb.from('gallery_items').insert({image_url:url,caption,type,group_id,order_index:maxOrd+1});
+  const {data:inserted}=await sb.from('gallery_items').insert({image_url:url,caption,type,group_id,order_index:maxOrd+1}).select().single();
+  if(inserted) _galItems.push(inserted);
   _galImgFile=null;
   document.getElementById('gal-img-prev').style.display='none';
   document.getElementById('gal-caption').value='';
   document.getElementById('gal-img-file').value='';
   msg.textContent='追加しました！';
   setTimeout(()=>msg.textContent='',2000);
-  loadGalleryAdmin();
+  _renderGalGroupSel();
+  _renderGalAdminList(); // 再取得せずローカルで更新
 }
 function _renderGalAdminList(){
   const list=document.getElementById('gal-admin-list');
