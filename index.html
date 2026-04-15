@@ -1450,10 +1450,33 @@ function tick(){
 setInterval(tick,1000);tick();
 
 // ---- 画像アップロード共通ユーティリティ ----
+// 2MB超 or 2048px超の場合だけ圧縮（それ以外はそのまま）
+async function compressIfNeeded(file){
+  const MAX_PX=2048, MAX_BYTES=2*1024*1024, QUALITY=0.92;
+  if(file.size<=MAX_BYTES) return file; // 小さければそのまま
+  return new Promise(resolve=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let {width:w,height:h}=img;
+      if(w<=MAX_PX&&h<=MAX_PX&&file.size<=MAX_BYTES){resolve(file);return;}
+      // 長辺をMAX_PXに収める
+      if(w>h&&w>MAX_PX){h=Math.round(h*MAX_PX/w);w=MAX_PX;}
+      else if(h>w&&h>MAX_PX){w=Math.round(w*MAX_PX/h);h=MAX_PX;}
+      const cv=document.createElement('canvas');
+      cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      cv.toBlob(blob=>resolve(new File([blob],file.name,{type:'image/jpeg'})),'image/jpeg',QUALITY);
+    };
+    img.src=url;
+  });
+}
 async function uploadToStorage(path, file) {
   try {
+    const compressed=await compressIfNeeded(file);
     await sb.storage.from('images').remove([path]);
-    const {error}=await sb.storage.from('images').upload(path, file, {contentType:file.type,upsert:true});
+    const {error}=await sb.storage.from('images').upload(path, compressed, {contentType:compressed.type,upsert:true});
     if(error) return null;
     const {data}=sb.storage.from('images').getPublicUrl(path);
     return data.publicUrl;
