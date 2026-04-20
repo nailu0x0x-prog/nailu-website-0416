@@ -1796,8 +1796,10 @@ async function loadWeekSchedForAdmin(){
 async function saveWeekSched(){
   const msg=document.getElementById('sched-save-msg');
   msg.textContent='保存中...';
+  console.log('saveWeekSched 開始');
   // 既存スケジュール全削除
-  await sb.from('schedules').delete().not('id','is',null);
+  const {error:delErr}=await sb.from('schedules').delete().not('id','is',null);
+  if(delErr) console.error('schedules delete error:',delErr);
   const week=getThisWeek();
   const inserts=[];
   document.querySelectorAll('#week-sched-edit .sw-item').forEach((item,i)=>{
@@ -1806,7 +1808,11 @@ async function saveWeekSched(){
     const tag=item.querySelector('[data-field="tag"]').value.trim();
     if(title) inserts.push({day:DAYS_EN[i],date:String(week[i].getDate()),title,time,tag});
   });
-  if(inserts.length>0) await sb.from('schedules').insert(inserts);
+  console.log('inserts:',inserts);
+  if(inserts.length>0){
+    const {error:insErr}=await sb.from('schedules').insert(inserts);
+    if(insErr) console.error('schedules insert error:',insErr);
+  }
   await loadSchedules();
   msg.textContent='保存しました！';
   setTimeout(()=>msg.textContent='', 2000);
@@ -1819,7 +1825,9 @@ async function sbGet(key){
   try{return JSON.parse(data.value);}catch(e){return data.value;}
 }
 async function sbSet(key,value){
-  await sb.from('settings').upsert({key,value:JSON.stringify(value)});
+  const {error}=await sb.from('settings').upsert({key,value:JSON.stringify(value)});
+  if(error) console.error('sbSet error:',key,error);
+  return !error;
 }
 
 // ---- 自己紹介 ----
