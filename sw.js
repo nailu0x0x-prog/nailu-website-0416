@@ -1,4 +1,4 @@
-const CACHE = 'nairu-v4';
+const CACHE = 'nairu-v5';
 
 self.addEventListener('install', e => {
   e.waitUntil(self.skipWaiting());

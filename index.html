@@ -1825,7 +1825,7 @@ async function sbGet(key){
   try{return JSON.parse(data.value);}catch(e){return data.value;}
 }
 async function sbSet(key,value){
-  const {error}=await sb.from('settings').upsert({key,value:JSON.stringify(value)});
+  const {error}=await sb.from('settings').upsert({key,value:JSON.stringify(value)},{onConflict:'key'});
   if(error) console.error('sbSet error:',key,error);
   return !error;
 }
