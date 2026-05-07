@@ -547,11 +547,6 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
   <!-- SCHEDULE -->
   <div class="pg" id="pg-schedule">
     <div class="sec-title">スケジュール</div>
-    <div class="cd-box">
-      <h3>COUNTDOWN — 初配信まで</h3>
-      <div class="cd-nums" id="cd">00d 00h 00m 00s</div>
-      <div class="cd-lbl">2026.04.19 18:00 START</div>
-    </div>
     <div class="sec-title">WEEKLY</div>
     <div id="sched-list">
       <div class="sched-item"><div class="sd"><div class="sd-day">SUN</div><div class="sd-num">19</div></div><div class="si"><div class="si-t">初配信✨ はじめましてないるです</div><div class="si-time">18:00 〜 20:00</div></div><div class="stag">配信</div></div>
@@ -1460,15 +1455,6 @@ window.addEventListener('load',()=>{
   setTimeout(()=>typewrite(document.getElementById('vsub-tw'),'OBSERVATION STATION',40),600);
 });
 
-// ---- COUNTDOWN ----
-const TARGET=new Date('2026-04-19T18:00:00+09:00');
-function tick(){
-  const diff=TARGET-new Date();
-  if(diff<=0){document.getElementById('cd').textContent='配信中！';return;}
-  const d=Math.floor(diff/86400000),h=Math.floor(diff%86400000/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000);
-  document.getElementById('cd').textContent=`${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-}
-setInterval(tick,1000);tick();
 
 // ---- 画像アップロード共通ユーティリティ ----
 // 2MB超 or 2048px超の場合だけ圧縮（それ以外はそのまま）
