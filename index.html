@@ -1007,6 +1007,8 @@ function setUser(u){
   checkLoginStreak();
   // 誕生日演出チェック
   checkBdayEffect();
+  // いいね状態を正しく反映するため再読み込み
+  loadPosts();
 }
 
 function doLogout(){
@@ -2045,11 +2047,13 @@ async function toggleLike(postId,btn){
   if(isLiked){
     btn.classList.remove('liked');
     cntEl.textContent=cur>1?cur-1:'';
-    await sb.from('post_likes').delete().eq('post_id',postId).eq('user_id',me.id);
+    const{error:delErr}=await sb.from('post_likes').delete().eq('post_id',postId).eq('user_id',me.id);
+    if(delErr) console.error('like delete error:',delErr);
   } else {
     btn.classList.add('liked');
     cntEl.textContent=cur+1;
-    await sb.from('post_likes').insert({post_id:postId,user_id:me.id});
+    const{error:insErr}=await sb.from('post_likes').upsert({post_id:postId,user_id:me.id},{onConflict:'post_id,user_id'});
+    if(insErr) console.error('like insert error:',insErr);
   }
 }
 
