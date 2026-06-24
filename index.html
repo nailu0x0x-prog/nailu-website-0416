@@ -1369,7 +1369,7 @@ async function addSched(){
   const v=['a-sday','a-sdate','a-stitle','a-stime','a-stag'].map(i=>document.getElementById(i).value);
   if(!v[2])return;
   const d=document.createElement('div');d.className='sched-item';
-  d.innerHTML=`<div class="sd"><div class="sd-day">${v[0]}</div><div class="sd-num">${v[1]}</div></div><div class="si"><div class="si-t">${v[2]}</div><div class="si-time">${v[3]}</div></div><div class="stag">${v[4]}</div>`;
+  d.innerHTML=`<div class="sd"><div class="sd-day">${escapeHtml(v[0])}</div><div class="sd-num">${escapeHtml(v[1])}</div></div><div class="si"><div class="si-t">${escapeHtml(v[2])}</div><div class="si-time">${escapeHtml(v[3])}</div></div><div class="stag">${escapeHtml(v[4])}</div>`;
   document.getElementById('sched-list').appendChild(d);
   ['a-sday','a-sdate','a-stitle','a-stime','a-stag'].forEach(i=>document.getElementById(i).value='');
   await sb.from('schedules').insert({day:v[0],date:v[1],title:v[2],time:v[3],tag:v[4]});
@@ -1416,14 +1416,14 @@ async function loadSchedules(){
   const list=document.getElementById('sched-list');list.innerHTML='';
   data.forEach(s=>{
     const d=document.createElement('div');d.className='sched-item';
-    d.innerHTML=`<div class="sd"><div class="sd-day">${s.day||''}</div><div class="sd-num">${s.date||''}</div></div><div class="si"><div class="si-t">${s.title}</div><div class="si-time">${s.time||''}</div></div><div class="stag">${s.tag||''}</div>`;
+    d.innerHTML=`<div class="sd"><div class="sd-day">${escapeHtml(s.day||'')}</div><div class="sd-num">${escapeHtml(s.date||'')}</div></div><div class="si"><div class="si-t">${escapeHtml(s.title)}</div><div class="si-time">${escapeHtml(s.time||'')}</div></div><div class="stag">${escapeHtml(s.tag||'')}</div>`;
     list.appendChild(d);
   });
 }
 function makeGoodsCard(g){
   const d=document.createElement('a');d.className='goods-card';d.href=g.url||'https://nailu-x.booth.pm/';d.target='_blank';d.dataset.id=g.id||'';
   const imgHtml=g.image_url?`<div class="goods-img"><img src="${g.image_url}" style="width:100%;height:100%;object-fit:cover;"></div>`:'<div class="goods-img">🛍</div>';
-  d.innerHTML=`${imgHtml}<div class="goods-info"><div class="goods-name">${g.name}</div><div class="goods-price">${g.price||''}</div></div><button class="goods-del" onclick="deleteGoods(event,this,'${g.id||''}')">✕</button>`;
+  d.innerHTML=`${imgHtml}<div class="goods-info"><div class="goods-name">${escapeHtml(g.name)}</div><div class="goods-price">${escapeHtml(g.price||'')}</div></div><button class="goods-del" onclick="deleteGoods(event,this,'${g.id||''}')">✕</button>`;
   return d;
 }
 async function loadGoods(){
@@ -1819,9 +1819,9 @@ async function loadWeekSchedForAdmin(){
         <span class="sw-date">${date.getMonth()+1}/${date.getDate()}（${DAYS_JP[i]}）</span>
       </div>
       <div class="sw-inputs">
-        <input class="admin-input sw-full" data-i="${i}" data-field="title" placeholder="予定タイトル（空白でなし）" value="${ex.title||''}">
-        <input class="admin-input" data-i="${i}" data-field="time" placeholder="時間 例: 20:00〜22:00" value="${ex.time||''}">
-        <input class="admin-input" data-i="${i}" data-field="tag" placeholder="タグ 例: 配信" value="${ex.tag||''}">
+        <input class="admin-input sw-full" data-i="${i}" data-field="title" placeholder="予定タイトル（空白でなし）" value="${escapeHtml(ex.title||'')}">
+        <input class="admin-input" data-i="${i}" data-field="time" placeholder="時間 例: 20:00〜22:00" value="${escapeHtml(ex.time||'')}">
+        <input class="admin-input" data-i="${i}" data-field="tag" placeholder="タグ 例: 配信" value="${escapeHtml(ex.tag||'')}">
       </div>`;
     cont.appendChild(div);
   });
@@ -2168,10 +2168,10 @@ function _renderGallery(){
     const idx=_galSlideIdx[g.id]||0;
     const sec=document.createElement('div');
     sec.className='gal-section';
-    sec.innerHTML=`<div class="gal-section-title">${g.name}</div>
+    sec.innerHTML=`<div class="gal-section-title">${escapeHtml(g.name)}</div>
       <div class="gal-slide-wrap">
         <div class="gal-slide-track" id="gsl-${g.id}" style="transform:translateX(-${idx*100}%)">
-          ${slides.map(i=>`<img class="gal-slide-img" src="${i.image_url}" alt="${i.caption||''}">`).join('')}
+          ${slides.map(i=>`<img class="gal-slide-img" src="${escapeHtml(i.image_url)}" alt="${escapeHtml(i.caption||'')}">`).join('')}
         </div>
         <button class="gal-slide-btn prev" onclick="galSlide(${g.id},-1)">‹</button>
         <button class="gal-slide-btn next" onclick="galSlide(${g.id},1)">›</button>
@@ -2185,9 +2185,9 @@ function _renderGallery(){
     const sec=document.createElement('div');
     sec.className='gal-section';
     sec.innerHTML=`<div class="gal-section-title">GALLERY</div><div class="gal-grid">${
-      normals.map(i=>`<div class="gal-item" onclick="openGalLb('${i.image_url}','${(i.caption||'').replace(/'/g,"\\'")}')">
-        <img src="${i.image_url}" loading="lazy">
-        ${i.caption?`<div class="gal-item-cap">${i.caption}</div>`:''}
+      normals.map(i=>`<div class="gal-item" data-url="${escapeHtml(i.image_url)}" data-cap="${escapeHtml(i.caption||'')}" onclick="openGalLb(this.dataset.url,this.dataset.cap)">
+        <img src="${escapeHtml(i.image_url)}" loading="lazy">
+        ${i.caption?`<div class="gal-item-cap">${escapeHtml(i.caption)}</div>`:''}
       </div>`).join('')
     }</div>`;
     cont.appendChild(sec);
@@ -2309,10 +2309,10 @@ function _renderGalAdminList(){
     const div=document.createElement('div');
     div.className='gal-admin-item';
     const group=_galGroups.find(g=>g.id===item.group_id);
-    div.innerHTML=`<img src="${item.image_url}">
+    div.innerHTML=`<img src="${escapeHtml(item.image_url)}">
       <div class="gal-admin-item-info">
-        <div>${item.caption||'（キャプションなし）'}</div>
-        <div style="opacity:.5;font-size:10px;">${item.type==='slide'?'スライド: '+(group?.name||'?'):'通常'}</div>
+        <div>${escapeHtml(item.caption||'（キャプションなし）')}</div>
+        <div style="opacity:.5;font-size:10px;">${item.type==='slide'?'スライド: '+escapeHtml(group?.name||'?'):'通常'}</div>
       </div>
       <div class="gal-admin-item-btns">
         <button title="上へ" onclick="galMoveItem(${item.id},-1)" ${i===0?'disabled':''}>↑</button>
