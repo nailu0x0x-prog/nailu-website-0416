@@ -1,12 +1,9 @@
 const webpush = require('web-push');
 
-const VAPID_PUBLIC  = process.env.VAPID_PUBLIC_KEY  || 'BFvCl8yYFOBebq3oihDY2Zir0UiyIHJ01wqVEaIUY6_g5U3vf8cAzc_PQQog61fiudehcAem9i0ejnLUqE-BgKE';
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || 'FNgOUapZBzIZEQS_yj7I2lYREAh4dfrEOI-qx7Q0qzU';
-const SUPA_URL      = process.env.SUPA_URL          || 'https://tghzvpogpuijbxsrwjgt.supabase.co';
-const SUPA_SERVICE_KEY = process.env.SUPA_SERVICE_KEY; // Supabase service_role key（Vercel環境変数に設定必須）
-const SUPA_ANON_KEY = process.env.SUPA_ANON_KEY     || 'sb_publishable_DL8vjJ-_DsSucvunEJmx_Q_hvEcRcke';
-
-webpush.setVapidDetails('mailto:nailu@example.com', VAPID_PUBLIC, VAPID_PRIVATE);
+const VAPID_PUBLIC     = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE    = process.env.VAPID_PRIVATE_KEY;
+const SUPA_URL         = process.env.SUPA_URL || 'https://tghzvpogpuijbxsrwjgt.supabase.co';
+const SUPA_SERVICE_KEY = process.env.SUPA_SERVICE_KEY;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
@@ -16,10 +13,11 @@ module.exports = async (req, res) => {
 
   // Supabaseでユーザーがadminかどうかを検証
   // SUPA_SERVICE_KEYが設定されていない場合は通知を拒否
-  if (!SUPA_SERVICE_KEY) {
-    console.error('SUPA_SERVICE_KEY が設定されていません。Vercel環境変数に追加してください。');
+  if (!SUPA_SERVICE_KEY || !VAPID_PUBLIC || !VAPID_PRIVATE) {
+    console.error('環境変数が不足しています（SUPA_SERVICE_KEY / VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY）');
     return res.status(503).json({ error: 'Notification service not configured' });
   }
+  webpush.setVapidDetails('mailto:nailu@example.com', VAPID_PUBLIC, VAPID_PRIVATE);
 
   const verifyRes = await fetch(`${SUPA_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}&select=role`, {
     headers: {
