@@ -654,6 +654,14 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
   <div class="pg" id="pg-admin">
     <div class="sec-title">管理画面</div>
     <div id="admin-no" class="admin-no"><p>管理画面は<br>ないるのみアクセスできます</p><button class="modal-btn" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto;display:block;" onclick="openLogin()">ログイン</button></div>
+    <!-- 初回セットアップ：管理者がまだ存在しない場合のみ表示 -->
+    <div id="admin-first-setup" style="display:none;" class="card" style="margin-top:14px;">
+      <h3>初回管理者セットアップ</h3>
+      <p style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:12px;line-height:1.8;">まだ管理者アカウントが存在しません。<br>ないるのアカウント名を入力して管理者に設定してください。</p>
+      <div class="upload-msg" id="setup-msg"></div>
+      <input class="admin-input" id="setup-name" placeholder="観測者名（ないるのアカウント名）">
+      <button class="admin-btn" onclick="doFirstAdminSetup()">管理者に設定する</button>
+    </div>
     <div id="admin-panel" style="display:none;">
       <div class="card">
         <h3>自己紹介文を編集</h3>
@@ -806,11 +814,18 @@ canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const ADMIN_PW = 'nairu2026';
 const SUPA_URL = 'https://tghzvpogpuijbxsrwjgt.supabase.co';
 const SUPA_KEY = 'sb_publishable_DL8vjJ-_DsSucvunEJmx_Q_hvEcRcke';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 let me = null;
+
+function escapeHtml(s){
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+async function hashPassword(pw){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 // ---- STARS & CONSTELLATIONS ----
 const cv=document.getElementById('bg'),cx=cv.getContext('2d');let stars=[],particles=[];
@@ -916,7 +931,7 @@ function goPage(id){
   document.querySelectorAll('.mitem').forEach(m=>m.classList.toggle('act',m.dataset.pg===id));
   if(id==='mypage') renderMypage();
   if(id==='gallery') loadGallery();
-  if(id==='admin') loadGalleryAdmin();
+  if(id==='admin'){loadGalleryAdmin();if(!me||me.role!=='admin')checkFirstAdminSetup();}
   setTimeout(addCardDecos,200);
   closeSide();closeUMenu();
 }
@@ -952,7 +967,8 @@ async function doRegister(){
   if(exist){err.textContent='その観測者名はすでに使われてるよ';return;}
   // 登録
   const regDate=new Date().toISOString().split('T')[0];
-  const {data,error}=await sb.from('users').insert({name:nm,birthday:bd,password:pw,registered_at:regDate}).select().single();
+  const hashed=await hashPassword(pw);
+  const {data,error}=await sb.from('users').insert({name:nm,birthday:bd,password:hashed,registered_at:regDate}).select().single();
   if(error){err.textContent='登録に失敗したよ。もう一度試してね';return;}
   ok.textContent='登録完了！ログインするよ🌌';
   setTimeout(()=>{setUser({name:nm,role:'observer',init:nm[0],bday:bd,regDate,id:data.id});closeLogin();},800);
@@ -965,14 +981,19 @@ async function doLogin(){
   const pw=document.getElementById('m-pw').value;
   const err=document.getElementById('m-err');
   if(!nm){err.textContent='観測者名を入力してね';return;}
-  if(pw===ADMIN_PW){setUser({name:nm,role:'admin',init:nm[0],bday:bd,regDate:new Date().toISOString().split('T')[0],id:0});closeLogin();return;}
   if(!bd){err.textContent='誕生日を入力してね';return;}
   if(!pw){err.textContent='パスワードを入力してね';return;}
   const {data,error}=await sb.from('users').select('*').eq('name',nm).maybeSingle();
   if(!data||error){err.textContent='アカウントが見つからないよ';return;}
-  if(data.password!==pw){err.textContent='パスワードが違うよ';return;}
   if(data.birthday!==bd){err.textContent='誕生日が違うよ';return;}
-  setUser({name:nm,role:'observer',init:nm[0],bday:bd,regDate:data.registered_at||data.created_at,id:data.id});
+  const hashed=await hashPassword(pw);
+  if(data.password!==hashed){
+    // 旧アカウント（平文保存）との互換チェック → 一致したらハッシュに自動移行
+    if(data.password!==pw){err.textContent='パスワードが違うよ';return;}
+    await sb.from('users').update({password:hashed}).eq('id',data.id);
+  }
+  const role=data.role||'observer';
+  setUser({name:nm,role,init:nm[0],bday:bd,regDate:data.registered_at||data.created_at,id:data.id});
   closeLogin();
 }
 
@@ -1028,6 +1049,30 @@ function doLogout(){
   document.getElementById('mypage-login-req').style.display='block';
   document.getElementById('mypage-content').style.display='none';
   closeUMenu();goPage('home');
+}
+
+// ---- 初回管理者セットアップ ----
+async function checkFirstAdminSetup(){
+  // 管理者がすでに存在するか確認
+  const {data}=await sb.from('users').select('id').eq('role','admin').limit(1);
+  if(!data||data.length===0){
+    document.getElementById('admin-first-setup').style.display='block';
+  }
+}
+async function doFirstAdminSetup(){
+  const name=document.getElementById('setup-name').value.trim();
+  const msg=document.getElementById('setup-msg');
+  if(!name){msg.textContent='観測者名を入力してね';return;}
+  // 管理者がすでに存在するか再確認
+  const {data:admins}=await sb.from('users').select('id').eq('role','admin').limit(1);
+  if(admins&&admins.length>0){msg.textContent='すでに管理者が設定されています';return;}
+  // 対象ユーザーを検索
+  const {data:user}=await sb.from('users').select('id').eq('name',name).maybeSingle();
+  if(!user){msg.textContent='そのアカウントが見つからないよ';return;}
+  const {error}=await sb.from('users').update({role:'admin'}).eq('id',user.id);
+  if(error){msg.textContent='設定に失敗したよ: '+error.message;return;}
+  msg.textContent='管理者に設定しました！再ログインしてください';
+  document.getElementById('admin-first-setup').style.display='none';
 }
 
 // ---- ログインストリーク & ポイント ----
@@ -1190,7 +1235,7 @@ async function postComment(){
   }
   const imgHtml=imgUrl?`<img class="c-img" src="${imgUrl}">`:'';
   const d=document.createElement('div');d.className='comment-card';d.dataset.tag=currentTag;
-  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'')">✕</button><div class="c-tag">${tagLabel}</div><div class="c-head"><div class="c-av" style="background:${col};">${me.init}</div><div class="c-name">${me.name}</div><div class="c-time">たった今</div></div><div class="c-body">${txt||''}</div>${imgHtml}`;
+  d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'')">✕</button><div class="c-tag">${tagLabel}</div><div class="c-head"><div class="c-av" style="background:${col};">${escapeHtml(me.init)}</div><div class="c-name">${escapeHtml(me.name)}</div><div class="c-time">たった今</div></div><div class="c-body">${escapeHtml(txt||'')}</div>${imgHtml}`;
   document.getElementById('comment-list').prepend(d);
   document.getElementById('c-input').value='';
   faImgFile=null;
@@ -1223,17 +1268,17 @@ function makeCommentCard(p,col,likedSet){
   const avUrl=avatarCache[p.user_name];
   const avHtml=avUrl
     ?`<div class="c-av" style="background:${col};overflow:hidden;"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`
-    :`<div class="c-av" style="background:${col};">${init}</div>`;
+    :`<div class="c-av" style="background:${col};">${escapeHtml(init)}</div>`;
   const liked=likedSet&&p.id?likedSet.has(p.id):false;
   const likeCount=p.like_count||0;
   const d=document.createElement('div');d.className='comment-card';d.dataset.id=p.id||'';d.dataset.tag=tag;
   d.innerHTML=`<button class="del-btn" onclick="deletePost(this,'${p.id||''}')">✕</button>
     <div class="c-tag">${tagLabel}</div>
     <div class="c-head">${avHtml}
-      <div class="c-name" onclick="openProfModal('${p.user_name}')">${p.user_name}</div>
+      <div class="c-name" data-user="${escapeHtml(p.user_name)}" onclick="openProfModal(this.dataset.user)">${escapeHtml(p.user_name)}</div>
       <div class="c-time">${time}</div>
     </div>
-    <div class="c-body">${p.body||''}</div>${imgHtml}
+    <div class="c-body">${escapeHtml(p.body||'')}</div>${imgHtml}
     <div class="c-footer">
       <button class="like-btn${liked?' liked':''}" id="like-${p.id}" onclick="toggleLike(${p.id},this)">
         <span class="like-heart">♥</span><span class="like-cnt">${likeCount||''}</span>
@@ -1281,7 +1326,7 @@ function makeNewsCard(n){
   const d=document.createElement('div');d.className='news-card';
   const id=n.id||'';
   d.dataset.id=id;
-  d.innerHTML=`<button class="del-btn" onclick="deleteNews(this,'${id}')">✕</button><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${n.time||'たった今'}</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
+  d.innerHTML=`<button class="del-btn" onclick="deleteNews(this,'${id}')">✕</button><div class="nbadge">${escapeHtml(n.type||'INFO')}</div><div class="ntitle">${escapeHtml(n.title)}</div><div class="nbody">${escapeHtml(n.body)}</div><div class="ntime">${n.time||'たった今'}</div><div class="react-row"><button class="rbtn" onclick="react(this)">✦ 応援 0</button></div>`;
   return d;
 }
 async function postNews(){
@@ -1318,7 +1363,7 @@ function renderHomeNews(news){
   const n=news[0];
   const time=n.created_at?new Date(n.created_at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):n.time||'';
   document.getElementById('home-news-card').style.display='block';
-  document.getElementById('home-news-item').innerHTML=`<div class="news-card"><div class="nbadge">${n.type||'INFO'}</div><div class="ntitle">${n.title}</div><div class="nbody">${n.body}</div><div class="ntime">${time}</div></div>`;
+  document.getElementById('home-news-item').innerHTML=`<div class="news-card"><div class="nbadge">${escapeHtml(n.type||'INFO')}</div><div class="ntitle">${escapeHtml(n.title)}</div><div class="nbody">${escapeHtml(n.body)}</div><div class="ntime">${time}</div></div>`;
 }
 async function addSched(){
   const v=['a-sday','a-sdate','a-stitle','a-stime','a-stag'].map(i=>document.getElementById(i).value);
@@ -2020,13 +2065,12 @@ async function checkPushStatus() {
 }
 
 async function sendPushToAll(title, message) {
-  // 管理者のみ実行
   if (!me || me.role !== 'admin') return;
   try {
     await fetch('/api/send-notification', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminPw: 'nairu2026', title, message })
+      body: JSON.stringify({ userId: me.id, title, message })
     });
   } catch (e) { console.error(e); }
 }
@@ -2089,7 +2133,7 @@ async function openProfModal(username){
   if(posts){
     document.getElementById('prof-postcnt').textContent=posts.length+(posts.length===5?'+':'');
     document.getElementById('prof-posts').innerHTML=posts.length
-      ?posts.map(p=>`<div class="prof-post-item">${p.body||'（画像投稿）'}</div>`).join('')
+      ?posts.map(p=>`<div class="prof-post-item">${escapeHtml(p.body||'（画像投稿）')}</div>`).join('')
       :'<div style="font-size:11px;color:rgba(255,255,255,0.3);">投稿がありません</div>';
   }
 }

@@ -8,5 +8,10 @@
         { "key": "Expires", "value": "0" }
       ]
     }
-  ]
+  ],
+  "env": {
+    "SUPA_URL": "https://tghzvpogpuijbxsrwjgt.supabase.co",
+    "SUPA_ANON_KEY": "sb_publishable_DL8vjJ-_DsSucvunEJmx_Q_hvEcRcke",
+    "VAPID_PUBLIC_KEY": "BFvCl8yYFOBebq3oihDY2Zir0UiyIHJ01wqVEaIUY6_g5U3vf8cAzc_PQQog61fiudehcAem9i0ejnLUqE-BgKE"
+  }
 }
